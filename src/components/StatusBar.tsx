@@ -29,10 +29,18 @@ export function StatusBar({ status }: Props) {
         </div>
 
         <div className="flex items-center gap-1">
-          {status.canInterface ? (
-            <><span className="can-status-dot active" /><span>CAN IF</span></>
+          {status.can0 ? (
+            <><span className="can-status-dot active" /><span>can0</span></>
           ) : (
-            <><span className="can-status-dot error" /><span>CAN IF down</span></>
+            <><span className="can-status-dot error" /><span>can0 down</span></>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1">
+          {status.can1 ? (
+            <><span className="can-status-dot active" /><span>can1</span></>
+          ) : (
+            <><span className="can-status-dot error" /><span>can1 down</span></>
           )}
         </div>
       </div>
