@@ -2,14 +2,15 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { CanFrame, PredefinedMessage, ParsedValue, ParserRule, ConnectionStatus, CanInterface } from '@/types/can';
 import { applyParserRule } from '@/data/mockData';
+import { useLocalStorage, useLocalStorageMap } from '@/hooks/useLocalStorage';
 
 const BACKEND_URL = localStorage.getItem('can-backend-url') || 'http://localhost:5000';
 
 export function useCanEngine() {
-  const [messages, setMessages] = useState<PredefinedMessage[]>([]);
-  const [parserRules, setParserRules] = useState<ParserRule[]>([]);
+  const [messages, setMessages] = useLocalStorage<PredefinedMessage[]>('can-messages', []);
+  const [parserRules, setParserRules] = useLocalStorage<ParserRule[]>('can-parser-rules', []);
   const [frames, setFrames] = useState<CanFrame[]>([]);
-  const [parsedValues, setParsedValues] = useState<Map<string, ParsedValue>>(new Map());
+  const [parsedValues, setParsedValues] = useLocalStorageMap<ParsedValue>('can-parsed-values');
   const [isPaused, setIsPaused] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     backend: false,
