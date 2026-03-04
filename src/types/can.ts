@@ -1,5 +1,7 @@
 export type SendMode = 'one-shot' | 'cyclic';
 
+export type CanInterface = 'can0' | 'can1';
+
 export type MessageCategory = 'Diagnostics' | 'Control' | 'Read requests' | 'Test sequences' | 'Custom';
 
 export interface PredefinedMessage {
@@ -14,6 +16,7 @@ export interface PredefinedMessage {
   cyclePeriodMs: number;
   active: boolean;
   isCyclicRunning?: boolean;
+  canInterface: CanInterface;
   notes?: string;
 }
 
@@ -28,6 +31,7 @@ export interface CanFrame {
   frameType: FrameType;
   dlc: number;
   dataBytes: string[];
+  canInterface: CanInterface;
   status?: string;
   notes?: string;
   parserMatched?: boolean;
@@ -72,7 +76,8 @@ export interface ParsedValue {
 
 export interface ConnectionStatus {
   backend: boolean;
-  canInterface: boolean;
+  can0: boolean;
+  can1: boolean;
   lastActivity: number | null;
   txCount: number;
   rxCount: number;

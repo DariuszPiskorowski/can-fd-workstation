@@ -28,6 +28,7 @@ function emptyMessage(): PredefinedMessage {
     sendMode: 'one-shot',
     cyclePeriodMs: 100,
     active: true,
+    canInterface: 'can0',
   };
 }
 
