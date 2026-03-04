@@ -2,15 +2,21 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { CanFrame, PredefinedMessage, ParsedValue, ParserRule, ConnectionStatus, CanInterface } from '@/types/can';
 import { applyParserRule } from '@/data/mockData';
-import { useLocalStorage, useLocalStorageMap } from '@/hooks/useLocalStorage';
 
 const BACKEND_URL = localStorage.getItem('can-backend-url') || 'http://localhost:5000';
 
+function loadJson<T>(key: string, fallback: T): T {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function loadMap<V>(key: string): Map<string, V> {
+  try { const v = localStorage.getItem(key); return v ? new Map(JSON.parse(v)) : new Map(); } catch { return new Map(); }
+}
+
 export function useCanEngine() {
-  const [messages, setMessages] = useLocalStorage<PredefinedMessage[]>('can-messages', []);
-  const [parserRules, setParserRules] = useLocalStorage<ParserRule[]>('can-parser-rules', []);
+  const [messages, setMessages] = useState<PredefinedMessage[]>(() => loadJson('can-messages', []));
+  const [parserRules, setParserRules] = useState<ParserRule[]>(() => loadJson('can-parser-rules', []));
   const [frames, setFrames] = useState<CanFrame[]>([]);
-  const [parsedValues, setParsedValues] = useLocalStorageMap<ParsedValue>('can-parsed-values');
+  const [parsedValues, setParsedValues] = useState<Map<string, ParsedValue>>(() => loadMap('can-parsed-values'));
   const [isPaused, setIsPaused] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     backend: false,
@@ -25,6 +31,11 @@ export function useCanEngine() {
   const parserRulesRef = useRef(parserRules);
   isPausedRef.current = isPaused;
   parserRulesRef.current = parserRules;
+
+  // Persist to localStorage
+  useEffect(() => { try { localStorage.setItem('can-messages', JSON.stringify(messages)); } catch {} }, [messages]);
+  useEffect(() => { try { localStorage.setItem('can-parser-rules', JSON.stringify(parserRules)); } catch {} }, [parserRules]);
+  useEffect(() => { try { localStorage.setItem('can-parsed-values', JSON.stringify(Array.from(parsedValues.entries()))); } catch {} }, [parsedValues]);
 
   // WebSocket connection
   useEffect(() => {
