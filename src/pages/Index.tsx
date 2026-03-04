@@ -9,6 +9,7 @@ import { MessageEditorModal } from '@/components/MessageEditorModal';
 import { ParserRuleModal } from '@/components/ParserRuleModal';
 import { PredefinedMessage, ParserRule } from '@/types/can';
 
+// Force full remount after hook refactor
 const Index = () => {
   const engine = useCanEngine();
   const [msgModalOpen, setMsgModalOpen] = useState(false);
