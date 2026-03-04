@@ -1,16 +1,16 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { CanFrame, PredefinedMessage, ParsedValue, ParserRule, ConnectionStatus } from '@/types/can';
-import { MOCK_MESSAGES, MOCK_PARSER_RULES, generateMockRxFrame, generateMockTxFrame, applyParserRule } from '@/data/mockData';
+import { applyParserRule } from '@/data/mockData';
 
 export function useCanEngine() {
-  const [messages, setMessages] = useState<PredefinedMessage[]>(MOCK_MESSAGES);
-  const [parserRules, setParserRules] = useState<ParserRule[]>(MOCK_PARSER_RULES);
+  const [messages, setMessages] = useState<PredefinedMessage[]>([]);
+  const [parserRules, setParserRules] = useState<ParserRule[]>([]);
   const [frames, setFrames] = useState<CanFrame[]>([]);
   const [parsedValues, setParsedValues] = useState<Map<string, ParsedValue>>(new Map());
   const [isPaused, setIsPaused] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
-    backend: true,
-    canInterface: true,
+    backend: false,
+    canInterface: false,
     lastActivity: null,
     txCount: 0,
     rxCount: 0,
@@ -19,60 +19,69 @@ export function useCanEngine() {
   const isPausedRef = useRef(isPaused);
   isPausedRef.current = isPaused;
 
-  // Simulate incoming RX frames
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!isPausedRef.current) {
-        const frame = generateMockRxFrame();
-        setFrames(prev => {
-          const next = [...prev, frame];
-          return next.length > 2000 ? next.slice(-1500) : next;
-        });
-        setConnectionStatus(prev => ({
-          ...prev,
-          rxCount: prev.rxCount + 1,
-          lastActivity: Date.now(),
-        }));
-        // Apply parser rules
-        updateParsedValues(frame);
-      }
-    }, 300 + Math.random() * 400);
-    return () => clearInterval(interval);
-  }, [parserRules]);
-
-  const updateParsedValues = useCallback((frame: CanFrame) => {
-    if (frame.direction !== 'RX') return;
-    setParsedValues(prev => {
-      const next = new Map(prev);
-      for (const rule of parserRules) {
-        if (rule.rxId === frame.canId) {
-          const result = applyParserRule(rule, frame.dataBytes);
-          if (result) {
-            next.set(rule.id, {
-              ruleId: rule.id,
-              displayName: rule.displayName,
-              rawBytes: result.rawBytes,
-              decimalResult: result.decimal,
-              scaledResult: result.scaled,
-              unit: rule.unit,
-              timestamp: frame.timestamp,
-              active: true,
-            });
+  // Process an incoming RX frame (call this from WebSocket handler)
+  const processRxFrame = useCallback((frame: CanFrame) => {
+    if (isPausedRef.current) return;
+    setFrames(prev => {
+      const next = [...prev, frame];
+      return next.length > 2000 ? next.slice(-1500) : next;
+    });
+    setConnectionStatus(prev => ({
+      ...prev,
+      rxCount: prev.rxCount + 1,
+      lastActivity: Date.now(),
+    }));
+    // Apply parser rules
+    if (frame.direction === 'RX') {
+      setParsedValues(prev => {
+        const next = new Map(prev);
+        for (const rule of parserRules) {
+          if (rule.rxId === frame.canId) {
+            const result = applyParserRule(rule, frame.dataBytes);
+            if (result) {
+              next.set(rule.id, {
+                ruleId: rule.id,
+                displayName: rule.displayName,
+                rawBytes: result.rawBytes,
+                decimalResult: result.decimal,
+                scaledResult: result.scaled,
+                unit: rule.unit,
+                timestamp: frame.timestamp,
+                active: true,
+              });
+            }
           }
         }
-      }
-      return next;
-    });
+        return next;
+      });
+    }
   }, [parserRules]);
 
+  // Send a message via future API: POST /api/send
   const sendMessage = useCallback((msg: PredefinedMessage) => {
-    const frame = generateMockTxFrame(msg);
+    const frame: CanFrame = {
+      id: `frame-${Date.now()}-${Math.random()}`,
+      timestamp: Date.now(),
+      direction: 'TX',
+      canId: msg.txId,
+      frameType: msg.dlc > 8 ? 'CAN FD' : 'Classic',
+      dlc: msg.dlc,
+      dataBytes: [...msg.dataBytes],
+      status: 'Sent',
+    };
     setFrames(prev => [...prev, frame]);
     setConnectionStatus(prev => ({
       ...prev,
       txCount: prev.txCount + 1,
       lastActivity: Date.now(),
     }));
+
+    // TODO: Replace with real API call
+    // fetch('/api/send', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ canId: msg.txId, dlc: msg.dlc, data: msg.dataBytes }),
+    // });
   }, []);
 
   const startCyclic = useCallback((msgId: string) => {
@@ -86,6 +95,9 @@ export function useCanEngine() {
     }, msg.cyclePeriodMs);
     cyclicTimers.current.set(msgId, timer);
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, isCyclicRunning: true } : m));
+
+    // TODO: Replace with real API call
+    // fetch(`/api/send/cyclic/start`, { method: 'POST', body: JSON.stringify({ messageId: msgId }) });
   }, [messages, sendMessage]);
 
   const stopCyclic = useCallback((msgId: string) => {
@@ -95,6 +107,9 @@ export function useCanEngine() {
       cyclicTimers.current.delete(msgId);
     }
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, isCyclicRunning: false } : m));
+
+    // TODO: Replace with real API call
+    // fetch(`/api/send/cyclic/stop`, { method: 'POST', body: JSON.stringify({ messageId: msgId }) });
   }, []);
 
   const clearFrames = useCallback(() => {
@@ -184,5 +199,6 @@ export function useCanEngine() {
     addMessage, updateMessage, deleteMessage, duplicateMessage,
     addParserRule, updateParserRule, deleteParserRule,
     exportMessages, exportParserRules, importMessages, importParserRules,
+    processRxFrame,
   };
 }
