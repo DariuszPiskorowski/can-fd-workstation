@@ -171,9 +171,11 @@ function MessageCard({
           <Play className="h-3 w-3 mr-0.5" /> Send
         </Button>
         <div className="flex-1" />
-        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onEdit} title="Edit"><Pencil className="h-3 w-3" /></Button>
-        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onDuplicate} title="Duplicate"><Copy className="h-3 w-3" /></Button>
-        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={onDelete} title="Delete"><Trash2 className="h-3 w-3" /></Button>
+        <div className="flex items-center gap-1 mr-6">
+          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onEdit} title="Edit"><Pencil className="h-3 w-3" /></Button>
+          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onDuplicate} title="Duplicate"><Copy className="h-3 w-3" /></Button>
+          <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={onDelete} title="Delete"><Trash2 className="h-3 w-3" /></Button>
+        </div>
       </div>
     </div>
   );
