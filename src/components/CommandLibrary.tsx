@@ -138,7 +138,7 @@ function MessageCard({
           <div className="text-xs font-semibold truncate">{msg.name}</div>
           <div className="text-[10px] text-muted-foreground truncate">{msg.description}</div>
         </div>
-        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0">{msg.category}</Badge>
+        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 mr-4">{msg.category}</Badge>
       </div>
 
       <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
