@@ -1,11 +1,13 @@
 import { ConnectionStatus as CS } from '@/types/can';
-import { Wifi, WifiOff, Radio } from 'lucide-react';
+import { Radio, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 
 interface Props {
   status: CS;
 }
 
 export function StatusBar({ status }: Props) {
+  const { dark, toggle } = useTheme();
   const formatTime = (ts: number | null) => {
     if (!ts) return 'Never';
     const d = new Date(ts);
@@ -50,6 +52,14 @@ export function StatusBar({ status }: Props) {
       <span>TX: <span className="font-mono text-can-tx">{status.txCount}</span></span>
       <span>RX: <span className="font-mono text-can-rx">{status.rxCount}</span></span>
       <span>Last: {formatTime(status.lastActivity)}</span>
+
+      <button
+        onClick={toggle}
+        className="ml-2 p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+        title={dark ? 'Tryb jasny' : 'Tryb ciemny'}
+      >
+        {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+      </button>
     </div>
   );
 }
