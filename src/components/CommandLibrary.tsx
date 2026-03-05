@@ -155,25 +155,25 @@ function MessageCard({
         {msg.dataBytes.slice(0, 16).join(' ')}{msg.dlc > 16 ? ' ...' : ''}
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {msg.sendMode === 'cyclic' ? (
           msg.isCyclicRunning ? (
-            <Button variant="destructive" size="sm" className="h-6 text-[10px] px-2" onClick={onStopCyclic}>
-              <Square className="h-3 w-3 mr-1" /> Stop
+            <Button variant="destructive" size="sm" className="h-6 text-[10px] px-1.5" onClick={onStopCyclic}>
+              <Square className="h-3 w-3 mr-0.5" /> Stop
             </Button>
           ) : (
-            <Button size="sm" className="h-6 text-[10px] px-2 bg-can-cyclic hover:bg-can-cyclic/80 text-primary-foreground" onClick={onStartCyclic}>
-              <RefreshCw className="h-3 w-3 mr-1" /> Cyclic
+            <Button size="sm" className="h-6 text-[10px] px-1.5 bg-can-cyclic hover:bg-can-cyclic/80 text-primary-foreground" onClick={onStartCyclic}>
+              <RefreshCw className="h-3 w-3 mr-0.5" /> Cyclic
             </Button>
           )
         ) : null}
-        <Button variant="default" size="sm" className="h-6 text-[10px] px-2" onClick={onSend}>
-          <Play className="h-3 w-3 mr-1" /> Send
+        <Button variant="default" size="sm" className="h-6 text-[10px] px-1.5" onClick={onSend}>
+          <Play className="h-3 w-3 mr-0.5" /> Send
         </Button>
         <div className="flex-1" />
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onEdit}><Pencil className="h-3 w-3" /></Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDuplicate}><Copy className="h-3 w-3" /></Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={onDelete}><Trash2 className="h-3 w-3" /></Button>
+        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onEdit} title="Edit"><Pencil className="h-3 w-3" /></Button>
+        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onDuplicate} title="Duplicate"><Copy className="h-3 w-3" /></Button>
+        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={onDelete} title="Delete"><Trash2 className="h-3 w-3" /></Button>
       </div>
     </div>
   );
