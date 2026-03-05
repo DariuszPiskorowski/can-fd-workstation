@@ -113,16 +113,16 @@ export function useCanEngine() {
     };
   }, []);
 
-  const sendMessage = useCallback((msg: PredefinedMessage) => {
+  const sendSingleFrame = useCallback((txId: string, dlc: number, dataBytes: string[], canInterface: CanInterface) => {
     const frame: CanFrame = {
       id: `frame-${Date.now()}-${Math.random()}`,
       timestamp: Date.now(),
       direction: 'TX',
-      canId: msg.txId,
-      frameType: msg.dlc > 8 ? 'CAN FD' : 'Classic',
-      dlc: msg.dlc,
-      dataBytes: [...msg.dataBytes],
-      canInterface: msg.canInterface,
+      canId: txId,
+      frameType: dlc > 8 ? 'CAN FD' : 'Classic',
+      dlc,
+      dataBytes: [...dataBytes],
+      canInterface,
       status: 'Sent',
     };
     setFrames(prev => [...prev, frame]);
@@ -133,12 +133,31 @@ export function useCanEngine() {
     }));
 
     socketRef.current?.emit('send_frame', {
-      canId: msg.txId,
-      dlc: msg.dlc,
-      data: msg.dataBytes,
-      interface: msg.canInterface,
+      canId: txId,
+      dlc,
+      data: dataBytes,
+      interface: canInterface,
     });
   }, []);
+
+  const sendMessage = useCallback((msg: PredefinedMessage) => {
+    const steps = [
+      { txId: msg.txId, dlc: msg.dlc, dataBytes: msg.dataBytes, canInterface: msg.canInterface },
+      ...(msg.sequenceSteps || []),
+    ];
+    const delay = msg.sequenceDelayMs ?? 50;
+
+    // Send first step immediately
+    sendSingleFrame(steps[0].txId, steps[0].dlc, steps[0].dataBytes, steps[0].canInterface);
+
+    // Send remaining steps with delays
+    for (let i = 1; i < steps.length; i++) {
+      const step = steps[i];
+      setTimeout(() => {
+        sendSingleFrame(step.txId, step.dlc, step.dataBytes, step.canInterface);
+      }, delay * i);
+    }
+  }, [sendSingleFrame]);
 
   const startCyclic = useCallback((msgId: string) => {
     const msg = messages.find(m => m.id === msgId);

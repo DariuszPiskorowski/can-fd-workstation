@@ -4,6 +4,13 @@ export type CanInterface = 'can0' | 'can1';
 
 export type MessageCategory = 'Diagnostics' | 'Control' | 'Read requests' | 'Test sequences' | 'Custom';
 
+export interface SequenceStep {
+  txId: string;
+  dlc: number;
+  dataBytes: string[];
+  canInterface: CanInterface;
+}
+
 export interface PredefinedMessage {
   id: string;
   name: string;
@@ -18,6 +25,8 @@ export interface PredefinedMessage {
   isCyclicRunning?: boolean;
   canInterface: CanInterface;
   notes?: string;
+  sequenceSteps?: SequenceStep[];
+  sequenceDelayMs?: number;
 }
 
 export type FrameDirection = 'TX' | 'RX';
