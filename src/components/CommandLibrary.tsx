@@ -144,6 +144,12 @@ function MessageCard({
       <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
         <span>ID: {msg.txId}</span>
         <span>DLC: {msg.dlc}</span>
+        {(msg.sequenceSteps?.length || 0) > 0 && (
+          <span className="text-primary">{(msg.sequenceSteps?.length || 0) + 1} steps</span>
+        )}
+        {(msg.sequenceSteps?.length || 0) > 0 && (
+          <span>{msg.sequenceDelayMs}ms delay</span>
+        )}
         {msg.sendMode === 'cyclic' && (
           <span className={msg.isCyclicRunning ? 'can-cyclic-indicator' : ''}>
             {msg.cyclePeriodMs}ms
@@ -153,6 +159,9 @@ function MessageCard({
 
       <div className="font-mono text-[10px] text-secondary-foreground bg-card px-1.5 py-1 rounded overflow-x-auto whitespace-nowrap">
         {msg.dataBytes.slice(0, 16).join(' ')}{msg.dlc > 16 ? ' ...' : ''}
+        {(msg.sequenceSteps || []).map((s, i) => (
+          <div key={i} className="text-muted-foreground">→ {s.dataBytes.slice(0, 16).join(' ')}{s.dlc > 16 ? ' ...' : ''}</div>
+        ))}
       </div>
 
       <div className="flex items-center gap-0.5">
