@@ -8,6 +8,7 @@ RUN npm run build
 
 # ---- Stage 2: Runtime ----
 FROM python:3.11-slim
+LABEL org.opencontainers.image.title="can-fd-workstation"
 WORKDIR /app
 
 # Install nginx
