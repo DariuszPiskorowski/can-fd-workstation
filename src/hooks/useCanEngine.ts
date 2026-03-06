@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { CanFrame, PredefinedMessage, ParsedValue, ParserRule, ConnectionStatus, CanInterface } from '@/types/can';
 import { applyParserRule } from '@/data/mockData';
 
-const BACKEND_URL = localStorage.getItem('can-backend-url') || 'http://localhost:5000';
+const BACKEND_URL = localStorage.getItem('can-backend-url') || window.location.origin;
 
 function loadJson<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
