@@ -8,15 +8,21 @@ RUN npm run build
 
 # ---- Stage 2: Runtime ----
 FROM python:3.11-slim
-LABEL org.opencontainers.image.title="can-fd-workstation"
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# Install nginx
-RUN apt-get update && apt-get install -y --no-install-recommends nginx && \
-    rm -rf /var/lib/apt/lists/*
+# Install system packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nginx \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-RUN pip install --no-cache-dir flask flask-socketio python-can
+RUN pip install --no-cache-dir \
+    flask \
+    flask-socketio \
+    python-can
 
 # Copy backend
 COPY backend/ /app/backend/
@@ -28,6 +34,7 @@ COPY --from=frontend-build /app/dist /var/www/html
 RUN cat > /etc/nginx/sites-available/default <<'EOF'
 server {
     listen 80;
+    server_name _;
     root /var/www/html;
     index index.html;
 
@@ -41,7 +48,11 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
     }
 }
 EOF
@@ -49,11 +60,16 @@ EOF
 # Startup script
 RUN cat > /app/start.sh <<'EOF'
 #!/bin/sh
-cd /app/backend && python3 can_bridge.py &
-nginx -g "daemon off;"
+set -e
+cd /app/backend
+python3 can_bridge.py &
+exec nginx -g "daemon off;"
 EOF
 RUN chmod +x /app/start.sh
 
 EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS http://127.0.0.1/ || exit 1
 
 CMD ["/app/start.sh"]
