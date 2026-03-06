@@ -18,12 +18,13 @@ import threading
 import can
 from flask import Flask
 from flask_socketio import SocketIO
+from typing import Optional
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # Active CAN buses
-buses: dict[str, can.Bus | None] = {"can0": None, "can1": None}
+buses: dict[str, Optional[object]] = {"can0": None, "can1": None}
 
 # messageId -> {"event": threading.Event, "thread": threading.Thread, "interface": str}
 cyclic_tasks: dict[str, dict] = {}
@@ -31,7 +32,7 @@ cyclic_tasks: dict[str, dict] = {}
 shutdown_event = threading.Event()
 
 
-def init_bus(interface: str) -> can.Bus | None:
+def init_bus(interface: str):
     """Try to open a CAN interface. Returns None if not available."""
     try:
         bus = can.Bus(channel=interface, interface="socketcan", fd=True)
@@ -117,7 +118,7 @@ def emit_error(message: str):
 
 def rx_listener(interface: str):
     """Background thread: read frames from a CAN bus and emit to WebSocket."""
-    bus = buses[interface]
+    bus = buses.get(interface)
     if bus is None:
         return
 
@@ -309,4 +310,4 @@ if __name__ == "__main__":
             t.start()
 
     print("[SERVER] Starting on :5000")
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0", port=5000, allow_unsafe_werkzeug=True)
