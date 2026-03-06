@@ -59,7 +59,7 @@ export function useCanEngine() {
       setConnectionStatus(prev => ({ ...prev, can0: data.can0, can1: data.can1 }));
     });
 
-    socket.on('rx_frame', (data: { canId: string; dlc: number; data: string[]; interface: CanInterface; timestamp: number }) => {
+    socket.on('rx_frame', (data: { canId: string; dlc: number; data: string[]; interface: CanInterface; timestamp: number; isFd?: boolean; bitrateSwitch?: boolean; isExtendedId?: boolean }) => {
       if (isPausedRef.current) return;
 
       const frame: CanFrame = {
@@ -67,10 +67,13 @@ export function useCanEngine() {
         timestamp: data.timestamp,
         direction: 'RX',
         canId: data.canId,
-        frameType: data.dlc > 8 ? 'CAN FD' : 'Classic',
+        frameType: data.isFd ? 'CAN FD' : (data.dlc > 8 ? 'CAN FD' : 'Classic'),
         dlc: data.dlc,
         dataBytes: data.data,
         canInterface: data.interface,
+        isFd: data.isFd ?? false,
+        bitrateSwitch: data.bitrateSwitch ?? false,
+        isExtendedId: data.isExtendedId ?? true,
       };
 
       setFrames(prev => {
@@ -113,16 +116,20 @@ export function useCanEngine() {
     };
   }, []);
 
-  const sendSingleFrame = useCallback((txId: string, dlc: number, dataBytes: string[], canInterface: CanInterface) => {
+  const sendSingleFrame = useCallback((txId: string, dlc: number, dataBytes: string[], canInterface: CanInterface, opts?: { isExtendedId?: boolean; isFd?: boolean; bitrateSwitch?: boolean }) => {
+    const isFd = opts?.isFd ?? (dlc > 8);
     const frame: CanFrame = {
       id: `frame-${Date.now()}-${Math.random()}`,
       timestamp: Date.now(),
       direction: 'TX',
       canId: txId,
-      frameType: dlc > 8 ? 'CAN FD' : 'Classic',
+      frameType: isFd ? 'CAN FD' : 'Classic',
       dlc,
       dataBytes: [...dataBytes],
       canInterface,
+      isExtendedId: opts?.isExtendedId ?? true,
+      isFd,
+      bitrateSwitch: opts?.bitrateSwitch ?? isFd,
       status: 'Sent',
     };
     setFrames(prev => [...prev, frame]);
@@ -137,24 +144,26 @@ export function useCanEngine() {
       dlc,
       data: dataBytes,
       interface: canInterface,
+      isExtendedId: opts?.isExtendedId ?? true,
+      isFd,
+      bitrateSwitch: opts?.bitrateSwitch ?? isFd,
     });
   }, []);
 
   const sendMessage = useCallback((msg: PredefinedMessage) => {
+    const msgOpts = { isExtendedId: msg.isExtendedId, isFd: msg.isFd, bitrateSwitch: msg.bitrateSwitch };
     const steps = [
       { txId: msg.txId, dlc: msg.dlc, dataBytes: msg.dataBytes, canInterface: msg.canInterface },
       ...(msg.sequenceSteps || []),
     ];
     const delay = msg.sequenceDelayMs ?? 50;
 
-    // Send first step immediately
-    sendSingleFrame(steps[0].txId, steps[0].dlc, steps[0].dataBytes, steps[0].canInterface);
+    sendSingleFrame(steps[0].txId, steps[0].dlc, steps[0].dataBytes, steps[0].canInterface, msgOpts);
 
-    // Send remaining steps with delays
     for (let i = 1; i < steps.length; i++) {
       const step = steps[i];
       setTimeout(() => {
-        sendSingleFrame(step.txId, step.dlc, step.dataBytes, step.canInterface);
+        sendSingleFrame(step.txId, step.dlc, step.dataBytes, step.canInterface, msgOpts);
       }, delay * i);
     }
   }, [sendSingleFrame]);
@@ -171,6 +180,9 @@ export function useCanEngine() {
       data: msg.dataBytes,
       interface: msg.canInterface,
       periodMs: msg.cyclePeriodMs,
+      isExtendedId: msg.isExtendedId ?? true,
+      isFd: msg.isFd ?? (msg.dlc > 8),
+      bitrateSwitch: msg.bitrateSwitch ?? (msg.dlc > 8),
     });
   }, [messages]);
 

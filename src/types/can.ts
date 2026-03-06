@@ -24,6 +24,9 @@ export interface PredefinedMessage {
   active: boolean;
   isCyclicRunning?: boolean;
   canInterface: CanInterface;
+  isExtendedId?: boolean;
+  isFd?: boolean;
+  bitrateSwitch?: boolean;
   notes?: string;
   sequenceSteps?: SequenceStep[];
   sequenceDelayMs?: number;
@@ -41,6 +44,9 @@ export interface CanFrame {
   dlc: number;
   dataBytes: string[];
   canInterface: CanInterface;
+  isExtendedId?: boolean;
+  isFd?: boolean;
+  bitrateSwitch?: boolean;
   status?: string;
   notes?: string;
   parserMatched?: boolean;
