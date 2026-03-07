@@ -150,11 +150,12 @@ export function ConditionalSequenceEditor({ steps, onStepsChange, finalOnSuccess
 
           {/* Expected Response */}
           <div>
-            <Label className="text-[10px] text-accent">Expected Response (first 8 bytes)</Label>
+            <Label className="text-[10px] text-accent">Expected Response (first 8 bytes) <span className="text-muted-foreground font-normal">— Delete = wildcard</span></Label>
             <HexByteInput
               bytes={step.expectedResponseStart}
               onChange={newBytes => updateStep(idx, { expectedResponseStart: newBytes })}
               className="mt-1"
+              allowWildcard
             />
           </div>
 

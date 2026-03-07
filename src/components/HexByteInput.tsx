@@ -140,8 +140,8 @@ export function HexByteInput({ bytes, onChange, className, allowWildcard }: HexB
         <input
           key={i}
           ref={el => { refs.current[i] = el; }}
-          className="can-byte-box bg-muted text-foreground border-border focus:ring-1 focus:ring-primary outline-none"
-          value={editIdx === i ? editVal : b}
+          className={`can-byte-box border-border focus:ring-1 focus:ring-primary outline-none ${b === 'XX' && editIdx !== i ? 'bg-muted/50 text-muted-foreground italic' : 'bg-muted text-foreground'}`}
+          value={editIdx === i ? editVal : (b === 'XX' ? '--' : b)}
           onFocus={() => handleFocus(i)}
           onBlur={() => handleBlur(i)}
           onChange={e => handleChange(i, e.target.value)}
