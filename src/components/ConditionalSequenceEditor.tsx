@@ -28,7 +28,7 @@ function emptyConditionalStep(): ConditionalStep {
 function emptyFinalMessage(): FinalSuccessMessage {
   return {
     enabled: false,
-    txId: '18DA00F1',
+    txId: '18E05609',
     dlc: 3,
     dataBytes: Array(3).fill('00'),
     canInterface: 'can0',
