@@ -14,7 +14,7 @@ function emptyConditionalStep(): ConditionalStep {
   return {
     id: `cstep-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     enabled: true,
-    txId: '18DA00F1',
+    txId: '18E05609',
     dlc: 8,
     dataBytes: Array(8).fill('00'),
     canInterface: 'can0',
