@@ -115,12 +115,12 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="text-sm">{message ? 'Edit Message' : 'New Message'}</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-3">
+        <ScrollArea className="flex-1 min-h-0 pr-3">
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
