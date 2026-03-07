@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, KeyboardEvent, ClipboardEvent } from 'react';
+import { useState, useRef, useCallback, useEffect, KeyboardEvent, ClipboardEvent } from 'react';
 
 interface HexByteInputProps {
   bytes: string[];
@@ -15,6 +15,7 @@ function normalize(val: string): string {
 export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) {
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editVal, setEditVal] = useState('');
+  const [pendingAdvance, setPendingAdvance] = useState<number | null>(null);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
   const commit = useCallback((idx: number, val: string) => {
@@ -22,6 +23,19 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
     next[idx] = normalize(val);
     onChange(next);
   }, [bytes, onChange]);
+
+  // Auto-advance via effect — only after React has finished updating state
+  useEffect(() => {
+    if (pendingAdvance !== null) {
+      const target = pendingAdvance;
+      setPendingAdvance(null);
+      const el = refs.current[target];
+      if (el) {
+        el.focus();
+        requestAnimationFrame(() => el.select());
+      }
+    }
+  }, [pendingAdvance]);
 
   const focusByte = (idx: number) => {
     const el = refs.current[idx];
@@ -38,19 +52,21 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
   };
 
   const handleBlur = (idx: number) => {
-    commit(idx, editVal);
-    setEditIdx(null);
+    if (editIdx === idx) {
+      commit(idx, editVal);
+      setEditIdx(null);
+    }
   };
 
   const handleChange = (idx: number, raw: string) => {
     const clean = raw.replace(/[^0-9a-fA-F]/g, '').slice(0, 2).toUpperCase();
     setEditVal(clean);
 
-    // Auto-advance after 2 valid chars
+    // Auto-advance ONLY after 2 valid hex chars — deferred to useEffect
     if (clean.length === 2 && idx < bytes.length - 1) {
       commit(idx, clean);
       setEditIdx(null);
-      focusByte(idx + 1);
+      setPendingAdvance(idx + 1);
     }
   };
 
@@ -60,13 +76,15 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
     if (e.key === 'Enter') {
       e.preventDefault();
       commit(idx, editVal);
-      if (idx < bytes.length - 1) focusByte(idx + 1);
+      setEditIdx(null);
+      if (idx < bytes.length - 1) setPendingAdvance(idx + 1);
       else input.blur();
       return;
     }
 
     if (e.key === 'Backspace' && editVal === '' && idx > 0) {
       e.preventDefault();
+      setEditIdx(null);
       focusByte(idx - 1);
       return;
     }
@@ -74,6 +92,7 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
     if (e.key === 'ArrowRight' && input.selectionStart === editVal.length && idx < bytes.length - 1) {
       e.preventDefault();
       commit(idx, editVal);
+      setEditIdx(null);
       focusByte(idx + 1);
       return;
     }
@@ -81,6 +100,7 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
     if (e.key === 'ArrowLeft' && input.selectionStart === 0 && idx > 0) {
       e.preventDefault();
       commit(idx, editVal);
+      setEditIdx(null);
       focusByte(idx - 1);
       return;
     }
@@ -88,10 +108,9 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
 
   const handlePaste = (idx: number, e: ClipboardEvent<HTMLInputElement>) => {
     const text = e.clipboardData.getData('text/plain').trim();
-    // If paste contains spaces or is longer than 2 chars, distribute across bytes
     if (text.length > 2 || text.includes(' ')) {
       e.preventDefault();
-      const parts = text.split(/[\s,]+/).filter(Boolean);
+      const parts = text.split(/[\s,\-]+/).filter(Boolean);
       const next = [...bytes];
       for (let i = 0; i < parts.length && idx + i < next.length; i++) {
         next[idx + i] = normalize(parts[i]);
@@ -99,7 +118,7 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
       onChange(next);
       setEditIdx(null);
       const target = Math.min(idx + parts.length, bytes.length - 1);
-      focusByte(target);
+      setPendingAdvance(target);
     }
   };
 
