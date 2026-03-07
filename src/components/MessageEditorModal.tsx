@@ -54,11 +54,8 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
     }
   }, [open, message]);
 
-  const updateByte = (index: number, value: string) => {
-    const clean = value.replace(/[^0-9a-fA-F]/g, '').slice(0, 2).toUpperCase();
-    const next = [...form.dataBytes];
-    next[index] = clean.padStart(2, '0');
-    setForm({ ...form, dataBytes: next });
+  const updateBytes = (newBytes: string[]) => {
+    setForm({ ...form, dataBytes: newBytes });
   };
 
   const handleDlcChange = (dlc: number) => {
