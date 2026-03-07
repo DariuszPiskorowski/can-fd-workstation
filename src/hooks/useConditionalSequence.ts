@@ -129,9 +129,9 @@ export function useConditionalSequence(
         state.lastRxSeen = frame.dataBytes.slice(0, 8);
         onStateChange(msg.id, { ...state });
 
-        // Prefix match on first 8 bytes
+        // Prefix match on first 8 bytes, skip wildcard 'XX' bytes
         const rxPrefix = frame.dataBytes.slice(0, 8).map(b => b.toUpperCase());
-        const matches = expectedPrefix.every((b, i) => rxPrefix[i] === b);
+        const matches = expectedPrefix.every((b, i) => b === 'XX' || rxPrefix[i] === b);
 
         if (matches) {
           resolved = true;

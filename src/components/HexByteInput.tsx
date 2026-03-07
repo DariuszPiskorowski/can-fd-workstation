@@ -4,6 +4,7 @@ interface HexByteInputProps {
   bytes: string[];
   onChange: (bytes: string[]) => void;
   className?: string;
+  allowWildcard?: boolean;
 }
 
 function normalize(val: string): string {
@@ -12,7 +13,7 @@ function normalize(val: string): string {
   return clean.padStart(2, '0');
 }
 
-export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) {
+export function HexByteInput({ bytes, onChange, className, allowWildcard }: HexByteInputProps) {
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editVal, setEditVal] = useState('');
   const [pendingAdvance, setPendingAdvance] = useState<number | null>(null);
@@ -73,6 +74,17 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
   const handleKeyDown = (idx: number, e: KeyboardEvent<HTMLInputElement>) => {
     const input = e.currentTarget;
 
+    if (e.key === 'Delete' && allowWildcard) {
+      e.preventDefault();
+      const next = [...bytes];
+      next[idx] = 'XX';
+      onChange(next);
+      setEditVal('');
+      setEditIdx(null);
+      if (idx < bytes.length - 1) setPendingAdvance(idx + 1);
+      return;
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault();
       commit(idx, editVal);
@@ -128,8 +140,8 @@ export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) 
         <input
           key={i}
           ref={el => { refs.current[i] = el; }}
-          className="can-byte-box bg-muted text-foreground border-border focus:ring-1 focus:ring-primary outline-none"
-          value={editIdx === i ? editVal : b}
+          className={`can-byte-box border-border focus:ring-1 focus:ring-primary outline-none ${b === 'XX' && editIdx !== i ? 'bg-muted/50 text-muted-foreground italic' : 'bg-muted text-foreground'}`}
+          value={editIdx === i ? editVal : (b === 'XX' ? '--' : b)}
           onFocus={() => handleFocus(i)}
           onBlur={() => handleBlur(i)}
           onChange={e => handleChange(i, e.target.value)}
