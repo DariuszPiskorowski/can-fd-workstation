@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { PredefinedMessage, MessageCategory } from '@/types/can';
-import { Play, Square, Copy, Pencil, Trash2, Plus, Search, Download, Upload, RefreshCw } from 'lucide-react';
+import { Play, Square, Copy, Pencil, Trash2, Plus, Search, Download, Upload, RefreshCw, Zap, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-const CATEGORIES: MessageCategory[] = ['Diagnostics', 'Control', 'Read requests', 'Test sequences', 'Custom'];
+const CATEGORIES: MessageCategory[] = ['Diagnostics', 'Control', 'Read requests', 'Test sequences', 'Custom', 'Conditional Sequence'];
 
 interface Props {
   messages: PredefinedMessage[];
@@ -19,9 +19,12 @@ interface Props {
   onAdd: () => void;
   onExport: () => void;
   onImport: (json: string) => void;
+  onRunConditional?: (msg: PredefinedMessage) => void;
+  onStopConditional?: (id: string) => void;
+  runningConditionalId?: string | null;
 }
 
-export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, onEdit, onDuplicate, onDelete, onAdd, onExport, onImport }: Props) {
+export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, onEdit, onDuplicate, onDelete, onAdd, onExport, onImport, onRunConditional, onStopConditional, runningConditionalId }: Props) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<MessageCategory | 'All'>('All');
 
@@ -90,7 +93,7 @@ export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, 
               className="cursor-pointer text-[10px] px-1.5 py-0"
               onClick={() => setSelectedCategory(cat)}
             >
-              {cat}
+              {cat === 'Conditional Sequence' ? 'Cond. Seq.' : cat}
             </Badge>
           ))}
         </div>
@@ -108,6 +111,9 @@ export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, 
               onEdit={() => onEdit(msg)}
               onDuplicate={() => onDuplicate(msg.id)}
               onDelete={() => onDelete(msg.id)}
+              onRunConditional={onRunConditional ? () => onRunConditional(msg) : undefined}
+              onStopConditional={onStopConditional ? () => onStopConditional(msg.id) : undefined}
+              isConditionalRunning={runningConditionalId === msg.id}
             />
           ))}
           {filtered.length === 0 && (
@@ -122,6 +128,7 @@ export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, 
 function MessageCard({
   message: msg,
   onSend, onStartCyclic, onStopCyclic, onEdit, onDuplicate, onDelete,
+  onRunConditional, onStopConditional, isConditionalRunning,
 }: {
   message: PredefinedMessage;
   onSend: () => void;
@@ -130,55 +137,142 @@ function MessageCard({
   onEdit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
+  onRunConditional?: () => void;
+  onStopConditional?: () => void;
+  isConditionalRunning?: boolean;
 }) {
+  const isConditional = msg.category === 'Conditional Sequence';
+  const condState = msg.conditionalState;
+
   return (
-    <div className="bg-muted/50 border border-border rounded p-2 space-y-1.5">
+    <div className={`bg-muted/50 border rounded p-2 space-y-1.5 ${
+      isConditionalRunning ? 'border-primary/50' : 
+      condState?.status === 'success' ? 'border-can-success/50' :
+      condState?.status === 'failed' ? 'border-destructive/50' : 'border-border'
+    }`} style={
+      isConditionalRunning ? { borderColor: 'hsl(var(--primary) / 0.5)' } :
+      condState?.status === 'success' ? { borderColor: 'hsl(var(--can-success) / 0.5)' } :
+      condState?.status === 'failed' ? { borderColor: 'hsl(var(--destructive) / 0.5)' } : undefined
+    }>
       <div className="flex items-start justify-between gap-1">
         <div className="min-w-0">
           <div className="text-xs font-semibold truncate">{msg.name}</div>
           <div className="text-[10px] text-muted-foreground truncate">{msg.description}</div>
         </div>
-        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 mr-4">{msg.category}</Badge>
+        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 mr-4">
+          {isConditional ? 'Cond.Seq' : msg.category}
+        </Badge>
       </div>
 
-      <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
-        <span>ID: {msg.txId}</span>
-        <span>DLC: {msg.dlc}</span>
-        {(msg.sequenceSteps?.length || 0) > 0 && (
-          <span className="text-primary">{(msg.sequenceSteps?.length || 0) + 1} steps</span>
-        )}
-        {(msg.sequenceSteps?.length || 0) > 0 && (
-          <span>{msg.sequenceDelayMs}ms delay</span>
-        )}
-        {msg.sendMode === 'cyclic' && (
-          <span className={msg.isCyclicRunning ? 'can-cyclic-indicator' : ''}>
-            {msg.cyclePeriodMs}ms
-          </span>
-        )}
-      </div>
+      {/* Conditional sequence status */}
+      {isConditional && condState && condState.status !== 'idle' && (
+        <div className="flex items-center gap-1.5 text-[10px]">
+          {condState.status === 'running' && (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin" style={{ color: 'hsl(var(--primary))' }} />
+              <span className="font-semibold" style={{ color: 'hsl(var(--primary))' }}>
+                Running — Step {condState.currentStep}
+              </span>
+              <span className="text-muted-foreground">
+                ({condState.repeatsUsed}× sent)
+              </span>
+              {condState.matched && <span style={{ color: 'hsl(var(--can-success))' }}>✓ Matched</span>}
+            </>
+          )}
+          {condState.status === 'success' && (
+            <>
+              <CheckCircle2 className="h-3 w-3" style={{ color: 'hsl(var(--can-success))' }} />
+              <span className="font-semibold" style={{ color: 'hsl(var(--can-success))' }}>Success</span>
+            </>
+          )}
+          {condState.status === 'failed' && (
+            <>
+              <XCircle className="h-3 w-3 text-destructive" />
+              <span className="font-semibold text-destructive">
+                Failed at Step {condState.currentStep}
+              </span>
+              {condState.failReason && (
+                <span className="text-muted-foreground truncate">{condState.failReason}</span>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
-      <div className="font-mono text-[10px] text-secondary-foreground bg-card px-1.5 py-1 rounded overflow-x-auto whitespace-nowrap">
-        {msg.dataBytes.slice(0, 16).join(' ')}{msg.dlc > 16 ? ' ...' : ''}
-        {(msg.sequenceSteps || []).map((s, i) => (
-          <div key={i} className="text-muted-foreground">→ {s.dataBytes.slice(0, 16).join(' ')}{s.dlc > 16 ? ' ...' : ''}</div>
-        ))}
-      </div>
+      {/* Standard message info */}
+      {!isConditional && (
+        <>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+            <span>ID: {msg.txId}</span>
+            <span>DLC: {msg.dlc}</span>
+            {(msg.sequenceSteps?.length || 0) > 0 && (
+              <span className="text-primary">{(msg.sequenceSteps?.length || 0) + 1} steps</span>
+            )}
+            {(msg.sequenceSteps?.length || 0) > 0 && (
+              <span>{msg.sequenceDelayMs}ms delay</span>
+            )}
+            {msg.sendMode === 'cyclic' && (
+              <span className={msg.isCyclicRunning ? 'can-cyclic-indicator' : ''}>
+                {msg.cyclePeriodMs}ms
+              </span>
+            )}
+          </div>
+
+          <div className="font-mono text-[10px] text-secondary-foreground bg-card px-1.5 py-1 rounded overflow-x-auto whitespace-nowrap">
+            {msg.dataBytes.slice(0, 16).join(' ')}{msg.dlc > 16 ? ' ...' : ''}
+            {(msg.sequenceSteps || []).map((s, i) => (
+              <div key={i} className="text-muted-foreground">→ {s.dataBytes.slice(0, 16).join(' ')}{s.dlc > 16 ? ' ...' : ''}</div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Conditional sequence info */}
+      {isConditional && (
+        <div className="font-mono text-[10px] text-secondary-foreground bg-card px-1.5 py-1 rounded space-y-0.5">
+          {(msg.conditionalSteps || []).map((s, i) => (
+            <div key={s.id} className={s.enabled ? '' : 'opacity-40'}>
+              <span className="text-primary">#{i + 1}</span> [{s.txId}] {s.repeatIntervalMs}ms×{s.maxRepeats} → <span className="text-accent">{s.expectedResponseStart.slice(0, 4).join(' ')}…</span>
+            </div>
+          ))}
+          {msg.finalOnSuccess?.enabled && (
+            <div style={{ color: 'hsl(var(--can-success))' }}>
+              ✓ Final: [{msg.finalOnSuccess.txId}] {msg.finalOnSuccess.dataBytes.join(' ')}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center gap-0.5">
-        {msg.sendMode === 'cyclic' ? (
-          msg.isCyclicRunning ? (
-            <Button variant="destructive" size="sm" className="h-6 text-[10px] px-1.5" onClick={onStopCyclic}>
+        {isConditional ? (
+          isConditionalRunning ? (
+            <Button variant="destructive" size="sm" className="h-6 text-[10px] px-1.5" onClick={onStopConditional}>
               <Square className="h-3 w-3 mr-0.5" /> Stop
             </Button>
           ) : (
-            <Button size="sm" className="h-6 text-[10px] px-1.5 bg-can-cyclic hover:bg-can-cyclic/80 text-primary-foreground" onClick={onStartCyclic}>
-              <RefreshCw className="h-3 w-3 mr-0.5" /> Cyclic
+            <Button size="sm" className="h-6 text-[10px] px-1.5" onClick={onRunConditional}
+              style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))' }}>
+              <Zap className="h-3 w-3 mr-0.5" /> Run Sequence
             </Button>
           )
-        ) : null}
-        <Button variant="default" size="sm" className="h-6 text-[10px] px-1.5" onClick={onSend}>
-          <Play className="h-3 w-3 mr-0.5" /> Send
-        </Button>
+        ) : (
+          <>
+            {msg.sendMode === 'cyclic' ? (
+              msg.isCyclicRunning ? (
+                <Button variant="destructive" size="sm" className="h-6 text-[10px] px-1.5" onClick={onStopCyclic}>
+                  <Square className="h-3 w-3 mr-0.5" /> Stop
+                </Button>
+              ) : (
+                <Button size="sm" className="h-6 text-[10px] px-1.5 bg-can-cyclic hover:bg-can-cyclic/80 text-primary-foreground" onClick={onStartCyclic}>
+                  <RefreshCw className="h-3 w-3 mr-0.5" /> Cyclic
+                </Button>
+              )
+            ) : null}
+            <Button variant="default" size="sm" className="h-6 text-[10px] px-1.5" onClick={onSend}>
+              <Play className="h-3 w-3 mr-0.5" /> Send
+            </Button>
+          </>
+        )}
         <div className="flex-1" />
         <div className="flex items-center gap-1 mr-6">
           <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onEdit} title="Edit"><Pencil className="h-3 w-3" /></Button>
