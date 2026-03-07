@@ -63,14 +63,9 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
     setForm({ ...form, dlc, dataBytes: bytes });
   };
 
-  const updateStepByte = (stepIdx: number, byteIdx: number, value: string) => {
-    const clean = value.replace(/[^0-9a-fA-F]/g, '').slice(0, 2).toUpperCase();
+  const updateStepBytes = (stepIdx: number, newBytes: string[]) => {
     const steps = [...(form.sequenceSteps || [])];
-    const step = { ...steps[stepIdx] };
-    const bytes = [...step.dataBytes];
-    bytes[byteIdx] = clean.padStart(2, '0');
-    step.dataBytes = bytes;
-    steps[stepIdx] = step;
+    steps[stepIdx] = { ...steps[stepIdx], dataBytes: newBytes };
     setForm({ ...form, sequenceSteps: steps });
   };
 
