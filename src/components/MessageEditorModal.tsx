@@ -295,7 +295,7 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
               <Input className="h-7 text-xs bg-muted" value={form.notes || ''} onChange={e => setForm({ ...form, notes: e.target.value })} />
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <DialogFooter>
           <Button variant="ghost" size="sm" className="text-xs" onClick={onClose}>Cancel</Button>
