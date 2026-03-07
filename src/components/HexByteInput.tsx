@@ -4,6 +4,7 @@ interface HexByteInputProps {
   bytes: string[];
   onChange: (bytes: string[]) => void;
   className?: string;
+  allowWildcard?: boolean;
 }
 
 function normalize(val: string): string {
