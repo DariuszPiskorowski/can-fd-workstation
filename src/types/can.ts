@@ -2,9 +2,44 @@ export type SendMode = 'one-shot' | 'cyclic';
 
 export type CanInterface = 'can0' | 'can1';
 
-export type MessageCategory = 'Diagnostics' | 'Control' | 'Read requests' | 'Test sequences' | 'Custom';
+export type MessageCategory = 'Diagnostics' | 'Control' | 'Read requests' | 'Test sequences' | 'Custom' | 'Conditional Sequence';
 
 export interface SequenceStep {
+  txId: string;
+  dlc: number;
+  dataBytes: string[];
+  canInterface: CanInterface;
+}
+
+export interface ConditionalStep {
+  id: string;
+  enabled: boolean;
+  txId: string;
+  dlc: number;
+  dataBytes: string[];
+  canInterface: CanInterface;
+  expectedResponseStart: string[]; // 8 bytes prefix match
+  repeatIntervalMs: number;
+  maxRepeats: number;
+  timeoutAfterLastRepeatMs: number;
+  isExtendedId?: boolean;
+  isFd?: boolean;
+  bitrateSwitch?: boolean;
+}
+
+export type ConditionalSequenceStatus = 'idle' | 'running' | 'success' | 'failed';
+
+export interface ConditionalSequenceState {
+  status: ConditionalSequenceStatus;
+  currentStep: number;
+  repeatsUsed: number;
+  lastRxSeen: string[] | null;
+  matched: boolean;
+  failReason?: string;
+}
+
+export interface FinalSuccessMessage {
+  enabled: boolean;
   txId: string;
   dlc: number;
   dataBytes: string[];
@@ -30,6 +65,10 @@ export interface PredefinedMessage {
   notes?: string;
   sequenceSteps?: SequenceStep[];
   sequenceDelayMs?: number;
+  // Conditional Sequence fields
+  conditionalSteps?: ConditionalStep[];
+  finalOnSuccess?: FinalSuccessMessage;
+  conditionalState?: ConditionalSequenceState;
 }
 
 export type FrameDirection = 'TX' | 'RX';
@@ -50,6 +89,8 @@ export interface CanFrame {
   status?: string;
   notes?: string;
   parserMatched?: boolean;
+  // Sequence annotation
+  seqAnnotation?: string;
 }
 
 export type Endianness = 'big' | 'little';
