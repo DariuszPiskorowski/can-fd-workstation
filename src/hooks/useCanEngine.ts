@@ -182,6 +182,11 @@ export function useCanEngine() {
         const next = new Map(prev);
         for (const rule of parserRulesRef.current) {
           if (rule.rxId === frame.canId) {
+            // Check match condition if enabled
+            if (rule.matchConditionEnabled && rule.matchConditionBytes) {
+              const match = rule.matchConditionBytes.every((b, i) => b === 'XX' || (frame.dataBytes[i]?.toUpperCase() === b.toUpperCase()));
+              if (!match) continue;
+            }
             const result = applyParserRule(rule, frame.dataBytes);
             if (result) {
               next.set(rule.id, { ruleId: rule.id, displayName: rule.displayName, rawBytes: result.rawBytes, decimalResult: result.decimal, scaledResult: result.scaled, unit: rule.unit, timestamp: frame.timestamp, active: true });

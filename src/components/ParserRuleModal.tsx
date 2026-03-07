@@ -70,6 +70,25 @@ export function ParserRuleModal({ open, onClose, onSave, rule }: Props) {
             <Input className="h-7 text-xs font-mono bg-muted" value={form.rxId} onChange={e => setForm({ ...form, rxId: e.target.value.toUpperCase() })} />
           </div>
 
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={form.matchConditionEnabled ?? false}
+              onCheckedChange={v => setForm({ ...form, matchConditionEnabled: v, matchConditionBytes: form.matchConditionBytes || Array(8).fill('XX') })}
+              className="scale-75"
+            />
+            <Label className="text-[10px]">If expected (match bytes)</Label>
+          </div>
+          {form.matchConditionEnabled && (
+            <div>
+              <Label className="text-[10px]">Expected Data (Delete = wildcard --)</Label>
+              <HexByteInput
+                bytes={form.matchConditionBytes || Array(8).fill('XX')}
+                onChange={b => setForm({ ...form, matchConditionBytes: b })}
+                allowWildcard
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-4 gap-2">
             <div>
               <Label className="text-[10px]">Start Byte</Label>

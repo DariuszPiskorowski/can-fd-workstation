@@ -107,7 +107,8 @@ export interface ParserRule {
   id: string;
   name: string;
   rxId: string;
-  matchCondition?: { byteIndex: number; value: string }[];
+  matchConditionEnabled?: boolean;
+  matchConditionBytes?: string[]; // 8 bytes, 'XX' = wildcard
   startByte: number;
   byteLength: number;
   endianness: Endianness;
