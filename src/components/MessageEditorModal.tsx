@@ -158,11 +158,7 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
               </div>
               <div>
                 <Label className="text-[10px]">Data Bytes</Label>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {form.dataBytes.map((b, i) => (
-                    <input key={i} className="can-byte-box bg-muted text-foreground border-border focus:ring-1 focus:ring-primary outline-none" value={b} onChange={e => updateByte(i, e.target.value)} maxLength={2} />
-                  ))}
-                </div>
+                <HexByteInput bytes={form.dataBytes} onChange={updateBytes} className="mt-1" />
               </div>
             </div>
 
