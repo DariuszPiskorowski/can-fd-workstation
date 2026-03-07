@@ -74,6 +74,17 @@ export function HexByteInput({ bytes, onChange, className, allowWildcard }: HexB
   const handleKeyDown = (idx: number, e: KeyboardEvent<HTMLInputElement>) => {
     const input = e.currentTarget;
 
+    if (e.key === 'Delete' && allowWildcard) {
+      e.preventDefault();
+      const next = [...bytes];
+      next[idx] = 'XX';
+      onChange(next);
+      setEditVal('');
+      setEditIdx(null);
+      if (idx < bytes.length - 1) setPendingAdvance(idx + 1);
+      return;
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault();
       commit(idx, editVal);
