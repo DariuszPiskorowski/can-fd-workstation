@@ -25,7 +25,7 @@ function emptyMessage(): PredefinedMessage {
     name: '',
     description: '',
     category: 'Custom',
-    txId: '18DA00F1',
+    txId: '18E05609',
     dlc: 8,
     dataBytes: Array(8).fill('00'),
     sendMode: 'one-shot',
@@ -41,7 +41,7 @@ function emptyMessage(): PredefinedMessage {
 
 function emptyStep(): SequenceStep {
   return {
-    txId: '18DA00F1',
+    txId: '18E05609',
     dlc: 8,
     dataBytes: Array(8).fill('00'),
     canInterface: 'can0',
