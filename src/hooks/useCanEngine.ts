@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { CanFrame, PredefinedMessage, ParsedValue, ParserRule, ConnectionStatus, CanInterface } from '@/types/can';
+import { CanFrame, PredefinedMessage, ParsedValue, ParserRule, ConnectionStatus, CanInterface, ConditionalSequenceState } from '@/types/can';
 import { applyParserRule } from '@/data/mockData';
+import { useConditionalSequence } from '@/hooks/useConditionalSequence';
 
 const BACKEND_URL = localStorage.getItem('can-backend-url') || window.location.origin;
 
@@ -36,6 +37,47 @@ export function useCanEngine() {
   useEffect(() => { try { localStorage.setItem('can-messages', JSON.stringify(messages)); } catch {} }, [messages]);
   useEffect(() => { try { localStorage.setItem('can-parser-rules', JSON.stringify(parserRules)); } catch {} }, [parserRules]);
   useEffect(() => { try { localStorage.setItem('can-parsed-values', JSON.stringify(Array.from(parsedValues.entries()))); } catch {} }, [parsedValues]);
+
+  const sendSingleFrame = useCallback((txId: string, dlc: number, dataBytes: string[], canInterface: CanInterface, opts?: { isExtendedId?: boolean; isFd?: boolean; bitrateSwitch?: boolean }) => {
+    const isFd = opts?.isFd ?? (dlc > 8);
+    const frame: CanFrame = {
+      id: `frame-${Date.now()}-${Math.random()}`,
+      timestamp: Date.now(),
+      direction: 'TX',
+      canId: txId,
+      frameType: isFd ? 'CAN FD' : 'Classic',
+      dlc,
+      dataBytes: [...dataBytes],
+      canInterface,
+      isExtendedId: opts?.isExtendedId ?? true,
+      isFd,
+      bitrateSwitch: opts?.bitrateSwitch ?? isFd,
+      status: 'Sent',
+    };
+    setFrames(prev => [...prev, frame]);
+    setConnectionStatus(prev => ({
+      ...prev,
+      txCount: prev.txCount + 1,
+      lastActivity: Date.now(),
+    }));
+
+    socketRef.current?.emit('send_frame', {
+      canId: txId,
+      dlc,
+      data: dataBytes,
+      interface: canInterface,
+      isExtendedId: opts?.isExtendedId ?? true,
+      isFd,
+      bitrateSwitch: opts?.bitrateSwitch ?? isFd,
+    });
+  }, []);
+
+  // Conditional sequence integration
+  const handleCondStateChange = useCallback((msgId: string, state: ConditionalSequenceState) => {
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, conditionalState: state } : m));
+  }, []);
+
+  const condSeq = useConditionalSequence(sendSingleFrame, handleCondStateChange);
 
   // WebSocket connection
   useEffect(() => {
@@ -87,6 +129,9 @@ export function useCanEngine() {
         lastActivity: Date.now(),
       }));
 
+      // Feed to conditional sequence matcher
+      condSeq.feedRxFrame(frame);
+
       // Apply parser rules
       setParsedValues(prev => {
         const next = new Map(prev);
@@ -116,41 +161,10 @@ export function useCanEngine() {
     };
   }, []);
 
-  const sendSingleFrame = useCallback((txId: string, dlc: number, dataBytes: string[], canInterface: CanInterface, opts?: { isExtendedId?: boolean; isFd?: boolean; bitrateSwitch?: boolean }) => {
-    const isFd = opts?.isFd ?? (dlc > 8);
-    const frame: CanFrame = {
-      id: `frame-${Date.now()}-${Math.random()}`,
-      timestamp: Date.now(),
-      direction: 'TX',
-      canId: txId,
-      frameType: isFd ? 'CAN FD' : 'Classic',
-      dlc,
-      dataBytes: [...dataBytes],
-      canInterface,
-      isExtendedId: opts?.isExtendedId ?? true,
-      isFd,
-      bitrateSwitch: opts?.bitrateSwitch ?? isFd,
-      status: 'Sent',
-    };
-    setFrames(prev => [...prev, frame]);
-    setConnectionStatus(prev => ({
-      ...prev,
-      txCount: prev.txCount + 1,
-      lastActivity: Date.now(),
-    }));
-
-    socketRef.current?.emit('send_frame', {
-      canId: txId,
-      dlc,
-      data: dataBytes,
-      interface: canInterface,
-      isExtendedId: opts?.isExtendedId ?? true,
-      isFd,
-      bitrateSwitch: opts?.bitrateSwitch ?? isFd,
-    });
-  }, []);
-
   const sendMessage = useCallback((msg: PredefinedMessage) => {
+    // Don't send conditional sequences with the normal send
+    if (msg.category === 'Conditional Sequence') return;
+
     const msgOpts = { isExtendedId: msg.isExtendedId, isFd: msg.isFd, bitrateSwitch: msg.bitrateSwitch };
     const steps = [
       { txId: msg.txId, dlc: msg.dlc, dataBytes: msg.dataBytes, canInterface: msg.canInterface },
@@ -217,6 +231,7 @@ export function useCanEngine() {
       id: `msg-${Date.now()}`,
       name: `${msg.name} (copy)`,
       isCyclicRunning: false,
+      conditionalState: undefined,
     };
     setMessages(prev => [...prev, dup]);
   }, [messages]);
@@ -278,5 +293,9 @@ export function useCanEngine() {
     addMessage, updateMessage, deleteMessage, duplicateMessage,
     addParserRule, updateParserRule, deleteParserRule,
     exportMessages, exportParserRules, importMessages, importParserRules,
+    // Conditional sequence
+    runConditionalSequence: condSeq.runSequence,
+    stopConditionalSequence: condSeq.stopSequence,
+    runningConditionalId: condSeq.runningSequenceId,
   };
 }

@@ -9,7 +9,6 @@ import { MessageEditorModal } from '@/components/MessageEditorModal';
 import { ParserRuleModal } from '@/components/ParserRuleModal';
 import { PredefinedMessage, ParserRule } from '@/types/can';
 
-// Force full remount after hook change v2
 const Index = () => {
   const engine = useCanEngine();
   const [msgModalOpen, setMsgModalOpen] = useState(false);
@@ -70,6 +69,9 @@ const Index = () => {
             onAdd={() => { setEditingMsg(null); setMsgModalOpen(true); }}
             onExport={engine.exportMessages}
             onImport={engine.importMessages}
+            onRunConditional={engine.runConditionalSequence}
+            onStopConditional={engine.stopConditionalSequence}
+            runningConditionalId={engine.runningConditionalId}
           />
         </div>
 

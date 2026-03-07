@@ -132,7 +132,14 @@ export function LiveTerminal({ frames, isPaused, onPauseToggle, onClear, txCount
             <span className="w-[72px] font-mono">{frame.canId}</span>
             <span className="w-10 text-muted-foreground">{frame.frameType === 'CAN FD' ? 'FD' : 'CL'}</span>
             <span className="w-6 text-muted-foreground">{frame.dlc}</span>
-            <span className="flex-1 font-mono truncate">{frame.dataBytes.slice(0, 16).join(' ')}{frame.dlc > 16 ? ' …' : ''}</span>
+            <span className="flex-1 font-mono truncate">
+              {frame.dataBytes.slice(0, 16).join(' ')}{frame.dlc > 16 ? ' …' : ''}
+              {frame.seqAnnotation && (
+                <span className="ml-2 text-[9px] font-semibold px-1 py-0.5 rounded" style={{ color: 'hsl(var(--primary))', background: 'hsl(var(--primary) / 0.12)' }}>
+                  {frame.seqAnnotation}
+                </span>
+              )}
+            </span>
             <span className="w-10 text-[10px] text-muted-foreground">{frame.status}</span>
           </div>
         ))}
