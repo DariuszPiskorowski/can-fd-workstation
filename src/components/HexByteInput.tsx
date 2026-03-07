@@ -13,7 +13,7 @@ function normalize(val: string): string {
   return clean.padStart(2, '0');
 }
 
-export function HexByteInput({ bytes, onChange, className }: HexByteInputProps) {
+export function HexByteInput({ bytes, onChange, className, allowWildcard }: HexByteInputProps) {
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editVal, setEditVal] = useState('');
   const [pendingAdvance, setPendingAdvance] = useState<number | null>(null);
