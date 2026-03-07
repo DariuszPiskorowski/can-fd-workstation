@@ -120,7 +120,7 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
           <DialogTitle className="text-sm">{message ? 'Edit Message' : 'New Message'}</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 pr-3">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-3 scrollbar-thin">
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
