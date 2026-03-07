@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { HexByteInput } from '@/components/HexByteInput';
 
 const CATEGORIES: MessageCategory[] = ['Diagnostics', 'Control', 'Read requests', 'Test sequences', 'Custom'];
 
@@ -53,11 +54,8 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
     }
   }, [open, message]);
 
-  const updateByte = (index: number, value: string) => {
-    const clean = value.replace(/[^0-9a-fA-F]/g, '').slice(0, 2).toUpperCase();
-    const next = [...form.dataBytes];
-    next[index] = clean.padStart(2, '0');
-    setForm({ ...form, dataBytes: next });
+  const updateBytes = (newBytes: string[]) => {
+    setForm({ ...form, dataBytes: newBytes });
   };
 
   const handleDlcChange = (dlc: number) => {
@@ -65,14 +63,9 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
     setForm({ ...form, dlc, dataBytes: bytes });
   };
 
-  const updateStepByte = (stepIdx: number, byteIdx: number, value: string) => {
-    const clean = value.replace(/[^0-9a-fA-F]/g, '').slice(0, 2).toUpperCase();
+  const updateStepBytes = (stepIdx: number, newBytes: string[]) => {
     const steps = [...(form.sequenceSteps || [])];
-    const step = { ...steps[stepIdx] };
-    const bytes = [...step.dataBytes];
-    bytes[byteIdx] = clean.padStart(2, '0');
-    step.dataBytes = bytes;
-    steps[stepIdx] = step;
+    steps[stepIdx] = { ...steps[stepIdx], dataBytes: newBytes };
     setForm({ ...form, sequenceSteps: steps });
   };
 
@@ -165,11 +158,7 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
               </div>
               <div>
                 <Label className="text-[10px]">Data Bytes</Label>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {form.dataBytes.map((b, i) => (
-                    <input key={i} className="can-byte-box bg-muted text-foreground border-border focus:ring-1 focus:ring-primary outline-none" value={b} onChange={e => updateByte(i, e.target.value)} maxLength={2} />
-                  ))}
-                </div>
+                <HexByteInput bytes={form.dataBytes} onChange={updateBytes} className="mt-1" />
               </div>
             </div>
 
@@ -205,11 +194,7 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
                 </div>
                 <div>
                   <Label className="text-[10px]">Data Bytes</Label>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {step.dataBytes.map((b, i) => (
-                      <input key={i} className="can-byte-box bg-muted text-foreground border-border focus:ring-1 focus:ring-primary outline-none" value={b} onChange={e => updateStepByte(idx, i, e.target.value)} maxLength={2} />
-                    ))}
-                  </div>
+                  <HexByteInput bytes={step.dataBytes} onChange={(newBytes) => updateStepBytes(idx, newBytes)} className="mt-1" />
                 </div>
               </div>
             ))}
