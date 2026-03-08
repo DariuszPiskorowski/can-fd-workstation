@@ -65,9 +65,22 @@ export function ParserRuleModal({ open, onClose, onSave, rule }: Props) {
             </div>
           </div>
 
-          <div>
-            <Label className="text-[10px]">RX ID (hex)</Label>
-            <Input className="h-7 text-xs font-mono bg-muted" value={form.rxId} onChange={e => setForm({ ...form, rxId: e.target.value.toUpperCase() })} />
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <div>
+              <Label className="text-[10px]">RX ID (hex)</Label>
+              <Input className="h-7 text-xs font-mono bg-muted" value={form.rxId} onChange={e => setForm({ ...form, rxId: e.target.value.toUpperCase() })} />
+            </div>
+            <div>
+              <Label className="text-[10px]">RX Interface</Label>
+              <Select value={form.rxInterface || 'any'} onValueChange={v => setForm({ ...form, rxInterface: v === 'any' ? undefined : v as CanInterface })}>
+                <SelectTrigger className="h-7 text-xs bg-muted w-24"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any" className="text-xs">Any</SelectItem>
+                  <SelectItem value="can0" className="text-xs">can0</SelectItem>
+                  <SelectItem value="can1" className="text-xs">can1</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
