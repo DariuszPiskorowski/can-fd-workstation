@@ -189,7 +189,7 @@ export function useCanEngine() {
             }
             const result = applyParserRule(rule, frame.dataBytes);
             if (result) {
-              next.set(rule.id, { ruleId: rule.id, displayName: rule.displayName, rawBytes: result.rawBytes, decimalResult: result.decimal, scaledResult: result.scaled, unit: rule.unit, timestamp: frame.timestamp, active: true });
+              next.set(rule.id, { ruleId: rule.id, displayName: rule.displayName, rawBytes: result.rawBytes, decimalResult: result.decimal, scaledResult: result.scaled, asciiResult: result.ascii, unit: rule.unit, timestamp: frame.timestamp, active: true });
             }
           }
         }

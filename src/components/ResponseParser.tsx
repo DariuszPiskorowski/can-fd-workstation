@@ -82,9 +82,11 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
                   <div className="flex items-center gap-3 bg-card rounded px-2 py-1">
                     <span className="can-status-dot active" />
                     <span className="text-sm font-mono font-bold">
-                      {rule.interpretation === 'hex'
-                        ? `0x${val.decimalResult.toString(16).toUpperCase()}`
-                        : val.scaledResult.toFixed(rule.scale < 1 ? 2 : 0)}
+                      {rule.interpretation === 'ascii'
+                        ? `"${val.asciiResult || ''}"`
+                        : rule.interpretation === 'hex'
+                          ? `0x${val.decimalResult.toString(16).toUpperCase()}`
+                          : val.scaledResult.toFixed(rule.scale < 1 ? 2 : 0)}
                     </span>
                     {rule.unit && <span className="text-xs text-muted-foreground">{rule.unit}</span>}
                     <span className="text-[9px] text-muted-foreground ml-auto">

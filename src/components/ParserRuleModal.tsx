@@ -32,7 +32,7 @@ function emptyRule(): ParserRule {
   };
 }
 
-const INTERPRETATIONS: InterpretationType[] = ['unsigned', 'signed', 'hex', 'decimal', 'bitfield', 'boolean', 'scaled'];
+const INTERPRETATIONS: InterpretationType[] = ['unsigned', 'signed', 'hex', 'decimal', 'bitfield', 'boolean', 'scaled', 'ascii'];
 
 export function ParserRuleModal({ open, onClose, onSave, rule }: Props) {
   const [form, setForm] = useState<ParserRule>(emptyRule());
