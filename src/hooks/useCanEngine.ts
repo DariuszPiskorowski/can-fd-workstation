@@ -181,7 +181,7 @@ export function useCanEngine() {
       setParsedValues(prev => {
         const next = new Map(prev);
         for (const rule of parserRulesRef.current) {
-          if (rule.rxId === frame.canId) {
+          if (rule.rxId === frame.canId && (!rule.rxInterface || rule.rxInterface === frame.canInterface)) {
             // Check match condition if enabled
             if (rule.matchConditionEnabled && rule.matchConditionBytes) {
               const match = rule.matchConditionBytes.every((b, i) => b === 'XX' || (frame.dataBytes[i]?.toUpperCase() === b.toUpperCase()));
