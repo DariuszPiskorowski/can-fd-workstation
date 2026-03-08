@@ -57,7 +57,7 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
                   <div>
                     <div className="text-xs font-semibold">{rule.displayName}</div>
                     <div className="text-[10px] font-mono text-muted-foreground">
-                      RX ID: {rule.rxId} · Byte {rule.startByte}:{rule.byteLength} · {rule.endianness.toUpperCase()} · {rule.interpretation}
+                      RX ID: {rule.rxId}{rule.rxInterface ? ` @ ${rule.rxInterface}` : ''} · Byte {rule.startByte}:{rule.byteLength} · {rule.endianness.toUpperCase()} · {rule.interpretation}
                     </div>
                   </div>
                   <div className="flex gap-0.5">
