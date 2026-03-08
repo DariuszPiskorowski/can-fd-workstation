@@ -34,9 +34,11 @@ export function LiveValues({ rules, parsedValues }: Props) {
                 <span className={`can-status-dot ${val ? 'active' : 'inactive'}`} />
                 <span className="text-lg font-mono font-bold leading-none">
                   {val
-                    ? rule.interpretation === 'hex'
-                      ? `0x${val.decimalResult.toString(16).toUpperCase()}`
-                      : val.scaledResult.toFixed(rule.scale < 1 ? 2 : 0)
+                    ? rule.interpretation === 'ascii'
+                      ? `"${val.asciiResult || ''}"`
+                      : rule.interpretation === 'hex'
+                        ? `0x${val.decimalResult.toString(16).toUpperCase()}`
+                        : val.scaledResult.toFixed(rule.scale < 1 ? 2 : 0)
                     : '---'}
                 </span>
                 {rule.unit && <span className="text-[10px] text-muted-foreground">{rule.unit}</span>}

@@ -127,6 +127,7 @@ export interface ParsedValue {
   rawBytes: string[];
   decimalResult: number;
   scaledResult: number;
+  asciiResult?: string;
   unit: string;
   timestamp: number;
   active: boolean;
