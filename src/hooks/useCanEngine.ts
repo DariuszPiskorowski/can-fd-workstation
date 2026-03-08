@@ -94,7 +94,7 @@ export function useCanEngine() {
           state.lastRxSeen = frame.dataBytes.slice(0, 8);
           updateCondState(msg.id, { ...state });
           const rxPrefix = frame.dataBytes.slice(0, 8).map(b => b.toUpperCase());
-          if (expectedPrefix.every((b, j) => rxPrefix[j] === b)) {
+          if (expectedPrefix.every((b, j) => b === 'XX' || rxPrefix[j] === b)) {
             resolved = true;
             state.matched = true;
             updateCondState(msg.id, { ...state });
