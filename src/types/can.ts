@@ -101,7 +101,8 @@ export type InterpretationType =
   | 'decimal'
   | 'bitfield'
   | 'boolean'
-  | 'scaled';
+  | 'scaled'
+  | 'ascii';
 
 export interface ParserRule {
   id: string;
