@@ -2,14 +2,19 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { GpioTarget, GpioSwitch } from '@/types/gpio';
 
-const BACKEND_URL = localStorage.getItem('can-backend-url') || window.location.origin;
+const FALLBACK_TARGETS: GpioTarget[] = [
+  { name: 'linia17', chip: '/dev/gpiochip0', line: 17, available: true, state: 0 },
+  { name: 'linia27', chip: '/dev/gpiochip0', line: 27, available: true, state: 0 },
+  { name: 'linia22', chip: '/dev/gpiochip0', line: 22, available: true, state: 0 },
+];
 
 function loadJson<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
 }
 
 export function useGpio(socketRef: React.RefObject<Socket | null>) {
-  const [targets, setTargets] = useState<GpioTarget[]>([]);
+  const [targets, setTargets] = useState<GpioTarget[]>(FALLBACK_TARGETS);
+  const receivedFromBackend = useRef(false);
   const [switches, setSwitches] = useState<GpioSwitch[]>(() => loadJson('gpio-switches', []));
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +29,7 @@ export function useGpio(socketRef: React.RefObject<Socket | null>) {
     if (!socket) return;
 
     const onTargets = (data: { targets: GpioTarget[] }) => {
+      receivedFromBackend.current = true;
       setTargets(data.targets);
     };
 
