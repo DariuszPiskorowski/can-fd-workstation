@@ -58,6 +58,7 @@ export default {
           parser: "hsl(var(--can-parser))",
           error: "hsl(var(--can-error))",
           success: "hsl(var(--can-success))",
+          gpio: "hsl(var(--can-gpio))",
           "terminal-bg": "hsl(var(--can-terminal-bg))",
         },
         sidebar: {
