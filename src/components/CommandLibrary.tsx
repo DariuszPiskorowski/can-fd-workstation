@@ -170,35 +170,36 @@ export function CommandLibrary({
 
       <ScrollArea className="flex-1 scrollbar-thin">
         <div className="p-2 space-y-1.5">
-          {/* CAN messages first, in their natural array order */}
-          {selectedCategory !== 'GPIO' && filtered.map(msg => (
-            <MessageCard
-              key={msg.id}
-              message={msg}
-              onSend={() => onSend(msg)}
-              onStartCyclic={() => onStartCyclic(msg.id)}
-              onStopCyclic={() => onStopCyclic(msg.id)}
-              onEdit={() => onEdit(msg)}
-              onDuplicate={() => onDuplicate(msg.id)}
-              onDelete={() => onDelete(msg.id)}
-              onRunConditional={onRunConditional ? () => onRunConditional(msg) : undefined}
-              onStopConditional={onStopConditional ? () => onStopConditional(msg.id) : undefined}
-              isConditionalRunning={runningConditionalId === msg.id}
-            />
-          ))}
-
-          {/* GPIO switches after CAN messages, in their creation order */}
-          {filteredGpio.map(sw => (
-            <GpioSwitchCard
-              key={sw.id}
-              gpioSwitch={sw}
-              targets={gpioTargets}
-              onToggle={onGpioToggle}
-              onDelete={onGpioDelete}
-            />
-          ))}
-
-          {filtered.length === 0 && filteredGpio.length === 0 && (
+          {orderedItems.map(item => {
+            if (item.type === 'gpio') {
+              return (
+                <GpioSwitchCard
+                  key={item.id}
+                  gpioSwitch={item.sw}
+                  targets={gpioTargets}
+                  onToggle={onGpioToggle}
+                  onDelete={onGpioDelete}
+                />
+              );
+            }
+            const msg = item.msg;
+            return (
+              <MessageCard
+                key={item.id}
+                message={msg}
+                onSend={() => onSend(msg)}
+                onStartCyclic={() => onStartCyclic(msg.id)}
+                onStopCyclic={() => onStopCyclic(msg.id)}
+                onEdit={() => onEdit(msg)}
+                onDuplicate={() => onDuplicate(msg.id)}
+                onDelete={() => onDelete(msg.id)}
+                onRunConditional={onRunConditional ? () => onRunConditional(msg) : undefined}
+                onStopConditional={onStopConditional ? () => onStopConditional(msg.id) : undefined}
+                isConditionalRunning={runningConditionalId === msg.id}
+              />
+            );
+          })}
+          {orderedItems.length === 0 && (
             <div className="text-xs text-muted-foreground text-center py-8">No items found</div>
           )}
         </div>
