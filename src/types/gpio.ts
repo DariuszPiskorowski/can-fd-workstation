@@ -11,4 +11,5 @@ export interface GpioSwitch {
   label: string;
   target: string;
   state: number;
+  order: number;
 }

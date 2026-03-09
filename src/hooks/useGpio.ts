@@ -75,12 +75,16 @@ export function useGpio(socketRef: React.RefObject<Socket | null>) {
 
   const addSwitch = useCallback((label: string, target: string) => {
     const existing = targets.find(t => t.name === target);
-    setSwitches(prev => [...prev, {
-      id: `gpio-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      label,
-      target,
-      state: existing?.state ?? 0,
-    }]);
+    setSwitches(prev => {
+      const maxOrder = prev.reduce((max, s) => Math.max(max, s.order ?? 0), 0);
+      return [...prev, {
+        id: `gpio-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        label,
+        target,
+        state: existing?.state ?? 0,
+        order: maxOrder + 1,
+      }];
+    });
   }, [targets]);
 
   const removeSwitch = useCallback((id: string) => {
