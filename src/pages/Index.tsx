@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCanEngine } from '@/hooks/useCanEngine';
+import { useGpio } from '@/hooks/useGpio';
 import { StatusBar } from '@/components/StatusBar';
 import { CommandLibrary } from '@/components/CommandLibrary';
 import { LiveTerminal } from '@/components/LiveTerminal';
@@ -7,14 +8,17 @@ import { ResponseParser } from '@/components/ResponseParser';
 import { LiveValues } from '@/components/LiveValues';
 import { MessageEditorModal } from '@/components/MessageEditorModal';
 import { ParserRuleModal } from '@/components/ParserRuleModal';
+import { GpioSwitchModal } from '@/components/GpioSwitchModal';
 import { PredefinedMessage, ParserRule } from '@/types/can';
 
 const Index = () => {
   const engine = useCanEngine();
+  const gpio = useGpio(engine.socketRef);
   const [msgModalOpen, setMsgModalOpen] = useState(false);
   const [editingMsg, setEditingMsg] = useState<PredefinedMessage | null>(null);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<ParserRule | null>(null);
+  const [gpioModalOpen, setGpioModalOpen] = useState(false);
 
   const handleEditMsg = (msg: PredefinedMessage) => {
     setEditingMsg(msg);
@@ -72,6 +76,11 @@ const Index = () => {
             onRunConditional={engine.runConditionalSequence}
             onStopConditional={engine.stopConditionalSequence}
             runningConditionalId={engine.runningConditionalId}
+            gpioSwitches={gpio.switches}
+            gpioTargets={gpio.targets}
+            onGpioToggle={gpio.setGpioState}
+            onGpioDelete={gpio.removeSwitch}
+            onGpioAdd={() => setGpioModalOpen(true)}
           />
         </div>
 
@@ -114,6 +123,13 @@ const Index = () => {
         onClose={() => { setRuleModalOpen(false); setEditingRule(null); }}
         onSave={handleSaveRule}
         rule={editingRule}
+      />
+
+      <GpioSwitchModal
+        open={gpioModalOpen}
+        onClose={() => setGpioModalOpen(false)}
+        onSave={gpio.addSwitch}
+        targets={gpio.targets}
       />
     </div>
   );

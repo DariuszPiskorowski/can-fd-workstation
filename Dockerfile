@@ -12,17 +12,25 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# Install system packages
+# Install system packages (including libgpiod)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     curl \
+    libgpiod2 \
+    libgpiod-dev \
+    python3-dev \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 RUN pip install --no-cache-dir \
     flask \
     flask-socketio \
-    python-can
+    python-can \
+    gpiod
+
+# Remove build-only packages
+RUN apt-get update && apt-get remove -y python3-dev gcc && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 # Copy backend
 COPY backend/ /app/backend/
