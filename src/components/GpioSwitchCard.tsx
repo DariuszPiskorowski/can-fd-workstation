@@ -37,14 +37,15 @@ export function GpioSwitchCard({ gpioSwitch, targets, onToggle, onDelete }: Gpio
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0 mr-6">
+          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => onDelete(gpioSwitch.id)} title="Remove"
+            style={{ color: 'hsl(var(--destructive))' }}>
+            <Trash2 className="h-3 w-3" />
+          </Button>
           <Badge variant="outline" className="text-[9px] px-1 py-0"
             style={{ color: 'hsl(var(--can-gpio))', borderColor: 'hsl(var(--can-gpio) / 0.4)' }}>
             GPIO
           </Badge>
-          <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive hover:text-destructive" onClick={() => onDelete(gpioSwitch.id)} title="Remove">
-            <Trash2 className="h-3 w-3" />
-          </Button>
         </div>
       </div>
 
