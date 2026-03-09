@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { PredefinedMessage, MessageCategory } from '@/types/can';
-import { Play, Square, Copy, Pencil, Trash2, Plus, Search, Download, Upload, RefreshCw, Zap, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { GpioSwitch, GpioTarget } from '@/types/gpio';
+import { GpioSwitchCard } from '@/components/GpioSwitchCard';
+import { Play, Square, Copy, Pencil, Trash2, Plus, Search, Download, Upload, RefreshCw, Zap, CheckCircle2, XCircle, Loader2, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -22,19 +24,37 @@ interface Props {
   onRunConditional?: (msg: PredefinedMessage) => void;
   onStopConditional?: (id: string) => void;
   runningConditionalId?: string | null;
+  // GPIO
+  gpioSwitches: GpioSwitch[];
+  gpioTargets: GpioTarget[];
+  onGpioToggle: (target: string, state: number) => void;
+  onGpioDelete: (id: string) => void;
+  onGpioAdd: () => void;
 }
 
-export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, onEdit, onDuplicate, onDelete, onAdd, onExport, onImport, onRunConditional, onStopConditional, runningConditionalId }: Props) {
+export function CommandLibrary({
+  messages, onSend, onStartCyclic, onStopCyclic, onEdit, onDuplicate, onDelete, onAdd, onExport, onImport,
+  onRunConditional, onStopConditional, runningConditionalId,
+  gpioSwitches, gpioTargets, onGpioToggle, onGpioDelete, onGpioAdd,
+}: Props) {
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<MessageCategory | 'All'>('All');
+  const [selectedCategory, setSelectedCategory] = useState<MessageCategory | 'All' | 'GPIO'>('All');
 
   const filtered = useMemo(() => {
     return messages.filter(m => {
       const matchesSearch = !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.description.toLowerCase().includes(search.toLowerCase());
-      const matchesCat = selectedCategory === 'All' || m.category === selectedCategory;
+      const matchesCat = selectedCategory === 'All' || selectedCategory === 'GPIO' || m.category === selectedCategory;
       return matchesSearch && matchesCat;
     });
   }, [messages, search, selectedCategory]);
+
+  const filteredGpio = useMemo(() => {
+    if (selectedCategory !== 'All' && selectedCategory !== 'GPIO') return [];
+    return gpioSwitches.filter(s => {
+      if (!search) return true;
+      return s.label.toLowerCase().includes(search.toLowerCase()) || s.target.toLowerCase().includes(search.toLowerCase());
+    });
+  }, [gpioSwitches, search, selectedCategory]);
 
   const handleImport = () => {
     const input = document.createElement('input');
@@ -62,7 +82,10 @@ export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, 
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleImport} title="Import">
             <Upload className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onAdd} title="Add">
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onGpioAdd} title="Add GPIO Switch">
+            <Cpu className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onAdd} title="Add Message">
             <Plus className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -96,12 +119,32 @@ export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, 
               {cat === 'Conditional Sequence' ? 'Cond. Seq.' : cat}
             </Badge>
           ))}
+          <Badge
+            variant={selectedCategory === 'GPIO' ? 'default' : 'outline'}
+            className="cursor-pointer text-[10px] px-1.5 py-0"
+            onClick={() => setSelectedCategory('GPIO')}
+            style={selectedCategory === 'GPIO' ? { background: 'hsl(var(--can-gpio))', color: 'hsl(var(--primary-foreground))' } : { color: 'hsl(var(--can-gpio))', borderColor: 'hsl(var(--can-gpio) / 0.4)' }}
+          >
+            GPIO
+          </Badge>
         </div>
       </div>
 
       <ScrollArea className="flex-1 scrollbar-thin">
         <div className="p-2 space-y-1.5">
-          {filtered.map(msg => (
+          {/* GPIO switches */}
+          {filteredGpio.map(sw => (
+            <GpioSwitchCard
+              key={sw.id}
+              gpioSwitch={sw}
+              targets={gpioTargets}
+              onToggle={onGpioToggle}
+              onDelete={onGpioDelete}
+            />
+          ))}
+
+          {/* CAN messages */}
+          {selectedCategory !== 'GPIO' && filtered.map(msg => (
             <MessageCard
               key={msg.id}
               message={msg}
@@ -116,8 +159,8 @@ export function CommandLibrary({ messages, onSend, onStartCyclic, onStopCyclic, 
               isConditionalRunning={runningConditionalId === msg.id}
             />
           ))}
-          {filtered.length === 0 && (
-            <div className="text-xs text-muted-foreground text-center py-8">No messages found</div>
+          {filtered.length === 0 && filteredGpio.length === 0 && (
+            <div className="text-xs text-muted-foreground text-center py-8">No items found</div>
           )}
         </div>
       </ScrollArea>
