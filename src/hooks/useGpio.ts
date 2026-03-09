@@ -29,6 +29,7 @@ export function useGpio(socketRef: React.RefObject<Socket | null>) {
     if (!socket) return;
 
     const onTargets = (data: { targets: GpioTarget[] }) => {
+      receivedFromBackend.current = true;
       setTargets(data.targets);
     };
 
