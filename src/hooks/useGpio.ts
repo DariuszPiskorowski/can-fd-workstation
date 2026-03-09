@@ -13,7 +13,8 @@ function loadJson<T>(key: string, fallback: T): T {
 }
 
 export function useGpio(socketRef: React.RefObject<Socket | null>) {
-  const [targets, setTargets] = useState<GpioTarget[]>([]);
+  const [targets, setTargets] = useState<GpioTarget[]>(FALLBACK_TARGETS);
+  const receivedFromBackend = useRef(false);
   const [switches, setSwitches] = useState<GpioSwitch[]>(() => loadJson('gpio-switches', []));
   const [error, setError] = useState<string | null>(null);
 
