@@ -1,0 +1,94 @@
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { GpioTarget, GpioSwitch } from '@/types/gpio';
+
+const BACKEND_URL = localStorage.getItem('can-backend-url') || window.location.origin;
+
+function loadJson<T>(key: string, fallback: T): T {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+
+export function useGpio(socketRef: React.RefObject<Socket | null>) {
+  const [targets, setTargets] = useState<GpioTarget[]>([]);
+  const [switches, setSwitches] = useState<GpioSwitch[]>(() => loadJson('gpio-switches', []));
+  const [error, setError] = useState<string | null>(null);
+
+  // Persist switches
+  useEffect(() => {
+    try { localStorage.setItem('gpio-switches', JSON.stringify(switches)); } catch {}
+  }, [switches]);
+
+  // Listen for GPIO socket events
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
+
+    const onTargets = (data: { targets: GpioTarget[] }) => {
+      setTargets(data.targets);
+    };
+
+    const onState = (data: { target: string; state: number }) => {
+      // Update the target state
+      setTargets(prev => prev.map(t => t.name === data.target ? { ...t, state: data.state } : t));
+      // Update switch states that match this target
+      setSwitches(prev => prev.map(s => s.target === data.target ? { ...s, state: data.state } : s));
+    };
+
+    const onError = (data: { message: string }) => {
+      if (data.message.startsWith('gpio')) {
+        setError(data.message);
+        setTimeout(() => setError(null), 5000);
+      }
+    };
+
+    socket.on('gpio_targets', onTargets);
+    socket.on('gpio_state', onState);
+    socket.on('error', onError);
+
+    // Request initial target list
+    socket.emit('gpio_list_targets');
+
+    return () => {
+      socket.off('gpio_targets', onTargets);
+      socket.off('gpio_state', onState);
+      socket.off('error', onError);
+    };
+  }, [socketRef.current]);
+
+  const refreshTargets = useCallback(() => {
+    socketRef.current?.emit('gpio_list_targets');
+  }, []);
+
+  const setGpioState = useCallback((target: string, state: number) => {
+    socketRef.current?.emit('gpio_set', { target, state });
+  }, []);
+
+  const addSwitch = useCallback((label: string, target: string) => {
+    const existing = targets.find(t => t.name === target);
+    setSwitches(prev => [...prev, {
+      id: `gpio-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      label,
+      target,
+      state: existing?.state ?? 0,
+    }]);
+  }, [targets]);
+
+  const removeSwitch = useCallback((id: string) => {
+    setSwitches(prev => prev.filter(s => s.id !== id));
+  }, []);
+
+  const updateSwitchLabel = useCallback((id: string, label: string) => {
+    setSwitches(prev => prev.map(s => s.id === id ? { ...s, label } : s));
+  }, []);
+
+  return {
+    targets,
+    switches,
+    error,
+    refreshTargets,
+    setGpioState,
+    addSwitch,
+    removeSwitch,
+    updateSwitchLabel,
+  };
+}

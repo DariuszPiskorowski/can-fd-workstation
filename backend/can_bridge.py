@@ -343,6 +343,9 @@ if __name__ == "__main__":
     for iface in ["can0", "can1"]:
         buses[iface] = init_bus(iface)
 
+    # Initialize GPIO
+    init_gpio()
+
     # Start RX listener threads
     for iface in ["can0", "can1"]:
         if buses[iface] is not None:
