@@ -66,7 +66,11 @@ export function useGpio(socketRef: React.RefObject<Socket | null>) {
   }, []);
 
   const setGpioState = useCallback((target: string, state: number) => {
-    socketRef.current?.emit('gpio_set', { target, state });
+    // Optimistic update
+    const s = state ? 1 : 0;
+    setTargets(prev => prev.map(t => t.name === target ? { ...t, state: s } : t));
+    setSwitches(prev => prev.map(sw => sw.target === target ? { ...sw, state: s } : sw));
+    socketRef.current?.emit('gpio_set', { target, state: s });
   }, []);
 
   const addSwitch = useCallback((label: string, target: string) => {
