@@ -67,10 +67,6 @@ export function GpioSwitchCard({ gpioSwitch, targets, onToggle, onDelete }: Gpio
           style={isOn ? { color: 'hsl(var(--can-gpio))' } : undefined}>
           {isOn ? 'ON' : 'OFF'}
         </span>
-        <div className="flex-1" />
-        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={() => onDelete(gpioSwitch.id)} title="Remove">
-          <Trash2 className="h-3 w-3" />
-        </Button>
       </div>
     </div>
   );
