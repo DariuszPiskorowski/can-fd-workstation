@@ -37,10 +37,15 @@ export function GpioSwitchCard({ gpioSwitch, targets, onToggle, onDelete }: Gpio
             )}
           </div>
         </div>
-        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 mr-4"
-          style={{ color: 'hsl(var(--can-gpio))', borderColor: 'hsl(var(--can-gpio) / 0.4)' }}>
-          GPIO
-        </Badge>
+        <div className="flex items-center gap-1 shrink-0">
+          <Badge variant="outline" className="text-[9px] px-1 py-0"
+            style={{ color: 'hsl(var(--can-gpio))', borderColor: 'hsl(var(--can-gpio) / 0.4)' }}>
+            GPIO
+          </Badge>
+          <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive hover:text-destructive" onClick={() => onDelete(gpioSwitch.id)} title="Remove">
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
       </div>
 
       {!isAvailable && (
@@ -62,10 +67,6 @@ export function GpioSwitchCard({ gpioSwitch, targets, onToggle, onDelete }: Gpio
           style={isOn ? { color: 'hsl(var(--can-gpio))' } : undefined}>
           {isOn ? 'ON' : 'OFF'}
         </span>
-        <div className="flex-1" />
-        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={() => onDelete(gpioSwitch.id)} title="Remove">
-          <Trash2 className="h-3 w-3" />
-        </Button>
       </div>
     </div>
   );
