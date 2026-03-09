@@ -42,6 +42,7 @@
     --can-cyclic: 145 60% 35%;
     --can-parser: 270 50% 50%;
     --can-error: 0 70% 50%;
+    --can-gpio: 200 70% 45%;
     --can-success: 145 60% 35%;
     --can-terminal-bg: 220 10% 96%;
     --can-row-hover: 220 10% 92%;
