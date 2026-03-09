@@ -309,6 +309,7 @@ def cleanup():
     print("[SHUTDOWN] Cleaning up...")
 
     shutdown_event.set()
+    cleanup_gpio()
 
     for msg_id, task in list(cyclic_tasks.items()):
         try:
