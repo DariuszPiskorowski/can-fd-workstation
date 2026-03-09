@@ -21,15 +21,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies (gpiod needs libgpiod-dev + gcc to compile)
 RUN pip install --no-cache-dir \
     flask \
     flask-socketio \
     python-can \
     gpiod
 
-# Remove build-only packages
-RUN apt-get update && apt-get remove -y python3-dev gcc && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+# Remove build-only packages but keep libgpiod runtime library
+RUN apt-get update \
+    && apt-get remove -y python3-dev gcc libgpiod-dev \
+    && apt-get autoremove -y \
+    && apt-get install -y --no-install-recommends libgpiod3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy backend
 COPY backend/ /app/backend/
