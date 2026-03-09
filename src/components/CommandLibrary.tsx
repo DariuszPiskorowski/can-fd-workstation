@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { PredefinedMessage, MessageCategory } from '@/types/can';
 import { GpioSwitch, GpioTarget } from '@/types/gpio';
 import { GpioSwitchCard } from '@/components/GpioSwitchCard';
