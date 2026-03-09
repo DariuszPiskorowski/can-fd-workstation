@@ -33,7 +33,6 @@ RUN pip install --no-cache-dir \
 RUN apt-get update \
     && apt-get remove -y gcc libgpiod-dev python3-dev \
     && apt-get autoremove -y \
-    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend
