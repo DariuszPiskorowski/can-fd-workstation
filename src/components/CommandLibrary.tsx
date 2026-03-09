@@ -46,22 +46,22 @@ export function CommandLibrary({
     try { const v = localStorage.getItem(orderKey); return v ? JSON.parse(v) : []; } catch { return []; }
   });
 
-  // Keep order in sync: add any new IDs not yet tracked, remove deleted ones
+  // Keep order in sync: append new IDs at end, remove deleted ones
   useEffect(() => {
     const allIds = new Set([...messages.map(m => m.id), ...gpioSwitches.map(s => s.id)]);
-    const currentOrder = itemOrder.filter(id => allIds.has(id));
-    const newIds = [...allIds].filter(id => !currentOrder.includes(id));
-    if (newIds.length > 0 || currentOrder.length !== itemOrder.length) {
-      const updated = [...currentOrder, ...newIds];
-      setItemOrder(updated);
+    setItemOrder(prev => {
+      const kept = prev.filter(id => allIds.has(id));
+      // Find IDs not yet in registry — append at end in stable order
+      const known = new Set(kept);
+      const newIds: string[] = [];
+      for (const m of messages) { if (!known.has(m.id)) newIds.push(m.id); }
+      for (const s of gpioSwitches) { if (!known.has(s.id)) newIds.push(s.id); }
+      if (newIds.length === 0 && kept.length === prev.length) return prev;
+      const updated = [...kept, ...newIds];
       try { localStorage.setItem(orderKey, JSON.stringify(updated)); } catch {}
-    }
+      return updated;
+    });
   }, [messages, gpioSwitches]);
-
-  // Persist order changes
-  useEffect(() => {
-    try { localStorage.setItem(orderKey, JSON.stringify(itemOrder)); } catch {}
-  }, [itemOrder]);
 
   // Build unified ordered + filtered list
   type UiItem = { type: 'can'; id: string; msg: PredefinedMessage } | { type: 'gpio'; id: string; sw: GpioSwitch };
