@@ -27,7 +27,8 @@ RUN pip install --no-cache-dir \
     flask \
     flask-socketio \
     python-can \
-    gpiod
+    gpiod \
+    gevent
 
 # Remove build-only packages, keep libgpiod3 runtime
 RUN apt-get update \
