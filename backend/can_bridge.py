@@ -19,6 +19,7 @@ import can
 from flask import Flask
 from flask_socketio import SocketIO
 from typing import Optional
+from gpio_manager import init_gpio, cleanup_gpio, list_targets, get_state, set_state
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
@@ -266,10 +267,49 @@ def handle_stop_cyclic(data):
         print(f"[CYCLIC] No active task for {msg_id}")
 
 
+# ---- GPIO Socket Events ----
+
+@socketio.on("gpio_list_targets")
+def handle_gpio_list():
+    try:
+        targets = list_targets()
+        socketio.emit("gpio_targets", {"targets": targets})
+    except Exception as e:
+        emit_error(f"gpio_list_targets failed: {e}")
+
+
+@socketio.on("gpio_get")
+def handle_gpio_get(data):
+    try:
+        target = data.get("target")
+        if not target:
+            raise ValueError("Missing target")
+        result = get_state(target)
+        socketio.emit("gpio_state", result)
+    except Exception as e:
+        emit_error(f"gpio_get failed: {e}")
+
+
+@socketio.on("gpio_set")
+def handle_gpio_set(data):
+    try:
+        target = data.get("target")
+        state = data.get("state")
+        if not target:
+            raise ValueError("Missing target")
+        if state is None:
+            raise ValueError("Missing state")
+        result = set_state(target, int(state))
+        socketio.emit("gpio_state", result)
+    except Exception as e:
+        emit_error(f"gpio_set failed: {e}")
+
+
 def cleanup():
     print("[SHUTDOWN] Cleaning up...")
 
     shutdown_event.set()
+    cleanup_gpio()
 
     for msg_id, task in list(cyclic_tasks.items()):
         try:
@@ -302,6 +342,9 @@ if __name__ == "__main__":
     # Initialize CAN buses
     for iface in ["can0", "can1"]:
         buses[iface] = init_bus(iface)
+
+    # Initialize GPIO
+    init_gpio()
 
     # Start RX listener threads
     for iface in ["can0", "can1"]:
