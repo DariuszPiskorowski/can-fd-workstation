@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { PredefinedMessage, MessageCategory } from '@/types/can';
 import { GpioSwitch, GpioTarget } from '@/types/gpio';
 import { GpioSwitchCard } from '@/components/GpioSwitchCard';
@@ -40,21 +40,59 @@ export function CommandLibrary({
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<MessageCategory | 'All' | 'GPIO'>('All');
 
-  const filtered = useMemo(() => {
-    return messages.filter(m => {
-      const matchesSearch = !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.description.toLowerCase().includes(search.toLowerCase());
-      const matchesCat = selectedCategory === 'All' || selectedCategory === 'GPIO' || m.category === selectedCategory;
-      return matchesSearch && matchesCat;
-    });
-  }, [messages, search, selectedCategory]);
+  // Global insertion order registry (persisted in localStorage)
+  const orderKey = 'panel-item-order';
+  const [itemOrder, setItemOrder] = useState<string[]>(() => {
+    try { const v = localStorage.getItem(orderKey); return v ? JSON.parse(v) : []; } catch { return []; }
+  });
 
-  const filteredGpio = useMemo(() => {
-    if (selectedCategory !== 'All' && selectedCategory !== 'GPIO') return [];
-    return gpioSwitches.filter(s => {
-      if (!search) return true;
-      return s.label.toLowerCase().includes(search.toLowerCase()) || s.target.toLowerCase().includes(search.toLowerCase());
-    });
-  }, [gpioSwitches, search, selectedCategory]);
+  // Keep order in sync: add any new IDs not yet tracked, remove deleted ones
+  useEffect(() => {
+    const allIds = new Set([...messages.map(m => m.id), ...gpioSwitches.map(s => s.id)]);
+    const currentOrder = itemOrder.filter(id => allIds.has(id));
+    const newIds = [...allIds].filter(id => !currentOrder.includes(id));
+    if (newIds.length > 0 || currentOrder.length !== itemOrder.length) {
+      const updated = [...currentOrder, ...newIds];
+      setItemOrder(updated);
+      try { localStorage.setItem(orderKey, JSON.stringify(updated)); } catch {}
+    }
+  }, [messages, gpioSwitches]);
+
+  // Persist order changes
+  useEffect(() => {
+    try { localStorage.setItem(orderKey, JSON.stringify(itemOrder)); } catch {}
+  }, [itemOrder]);
+
+  // Build unified ordered + filtered list
+  type UiItem = { type: 'can'; id: string; msg: PredefinedMessage } | { type: 'gpio'; id: string; sw: GpioSwitch };
+
+  const orderedItems = useMemo(() => {
+    const canMap = new Map(messages.map(m => [m.id, m]));
+    const gpioMap = new Map(gpioSwitches.map(s => [s.id, s]));
+
+    const items: UiItem[] = [];
+    for (const id of itemOrder) {
+      const msg = canMap.get(id);
+      if (msg) {
+        // Apply CAN filters
+        const matchesSearch = !search || msg.name.toLowerCase().includes(search.toLowerCase()) || msg.description.toLowerCase().includes(search.toLowerCase());
+        const matchesCat = selectedCategory === 'All' || selectedCategory === 'GPIO' || msg.category === selectedCategory;
+        if (selectedCategory !== 'GPIO' && matchesSearch && matchesCat) {
+          items.push({ type: 'can', id, msg });
+        }
+        continue;
+      }
+      const sw = gpioMap.get(id);
+      if (sw) {
+        if (selectedCategory !== 'All' && selectedCategory !== 'GPIO') continue;
+        const matchesSearch = !search || sw.label.toLowerCase().includes(search.toLowerCase()) || sw.target.toLowerCase().includes(search.toLowerCase());
+        if (matchesSearch) {
+          items.push({ type: 'gpio', id, sw });
+        }
+      }
+    }
+    return items;
+  }, [itemOrder, messages, gpioSwitches, search, selectedCategory]);
 
   const handleImport = () => {
     const input = document.createElement('input');
@@ -132,35 +170,36 @@ export function CommandLibrary({
 
       <ScrollArea className="flex-1 scrollbar-thin">
         <div className="p-2 space-y-1.5">
-          {/* CAN messages first, in their natural array order */}
-          {selectedCategory !== 'GPIO' && filtered.map(msg => (
-            <MessageCard
-              key={msg.id}
-              message={msg}
-              onSend={() => onSend(msg)}
-              onStartCyclic={() => onStartCyclic(msg.id)}
-              onStopCyclic={() => onStopCyclic(msg.id)}
-              onEdit={() => onEdit(msg)}
-              onDuplicate={() => onDuplicate(msg.id)}
-              onDelete={() => onDelete(msg.id)}
-              onRunConditional={onRunConditional ? () => onRunConditional(msg) : undefined}
-              onStopConditional={onStopConditional ? () => onStopConditional(msg.id) : undefined}
-              isConditionalRunning={runningConditionalId === msg.id}
-            />
-          ))}
-
-          {/* GPIO switches after CAN messages, in their creation order */}
-          {filteredGpio.map(sw => (
-            <GpioSwitchCard
-              key={sw.id}
-              gpioSwitch={sw}
-              targets={gpioTargets}
-              onToggle={onGpioToggle}
-              onDelete={onGpioDelete}
-            />
-          ))}
-
-          {filtered.length === 0 && filteredGpio.length === 0 && (
+          {orderedItems.map(item => {
+            if (item.type === 'gpio') {
+              return (
+                <GpioSwitchCard
+                  key={item.id}
+                  gpioSwitch={item.sw}
+                  targets={gpioTargets}
+                  onToggle={onGpioToggle}
+                  onDelete={onGpioDelete}
+                />
+              );
+            }
+            const msg = item.msg;
+            return (
+              <MessageCard
+                key={item.id}
+                message={msg}
+                onSend={() => onSend(msg)}
+                onStartCyclic={() => onStartCyclic(msg.id)}
+                onStopCyclic={() => onStopCyclic(msg.id)}
+                onEdit={() => onEdit(msg)}
+                onDuplicate={() => onDuplicate(msg.id)}
+                onDelete={() => onDelete(msg.id)}
+                onRunConditional={onRunConditional ? () => onRunConditional(msg) : undefined}
+                onStopConditional={onStopConditional ? () => onStopConditional(msg.id) : undefined}
+                isConditionalRunning={runningConditionalId === msg.id}
+              />
+            );
+          })}
+          {orderedItems.length === 0 && (
             <div className="text-xs text-muted-foreground text-center py-8">No items found</div>
           )}
         </div>
