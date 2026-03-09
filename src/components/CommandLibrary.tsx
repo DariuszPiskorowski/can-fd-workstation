@@ -132,60 +132,37 @@ export function CommandLibrary({
 
       <ScrollArea className="flex-1 scrollbar-thin">
         <div className="p-2 space-y-1.5">
-          {(() => {
-            // Build unified list for interleaved rendering
-            type UiItem = { type: 'gpio'; data: typeof filteredGpio[0] } | { type: 'can'; data: typeof filtered[0] };
-            const items: UiItem[] = [];
+          {/* CAN messages first, in their natural array order */}
+          {selectedCategory !== 'GPIO' && filtered.map(msg => (
+            <MessageCard
+              key={msg.id}
+              message={msg}
+              onSend={() => onSend(msg)}
+              onStartCyclic={() => onStartCyclic(msg.id)}
+              onStopCyclic={() => onStopCyclic(msg.id)}
+              onEdit={() => onEdit(msg)}
+              onDuplicate={() => onDuplicate(msg.id)}
+              onDelete={() => onDelete(msg.id)}
+              onRunConditional={onRunConditional ? () => onRunConditional(msg) : undefined}
+              onStopConditional={onStopConditional ? () => onStopConditional(msg.id) : undefined}
+              isConditionalRunning={runningConditionalId === msg.id}
+            />
+          ))}
 
-            filteredGpio.forEach(sw => items.push({ type: 'gpio', data: sw }));
-            if (selectedCategory !== 'GPIO') {
-              filtered.forEach(msg => items.push({ type: 'can', data: msg }));
-            }
+          {/* GPIO switches after CAN messages, in their creation order */}
+          {filteredGpio.map(sw => (
+            <GpioSwitchCard
+              key={sw.id}
+              gpioSwitch={sw}
+              targets={gpioTargets}
+              onToggle={onGpioToggle}
+              onDelete={onGpioDelete}
+            />
+          ))}
 
-            // Sort: GPIO by order field, CAN messages keep their array order.
-            // Interleave by using a stable index based on creation position.
-            // GPIO items use their `order` field; CAN items get order = their array index.
-            const ordered = items.map((item, idx) => ({
-              ...item,
-              sortKey: item.type === 'gpio' ? (item.data as any).order ?? idx : idx,
-            }));
-            ordered.sort((a, b) => a.sortKey - b.sortKey);
-
-            if (ordered.length === 0) {
-              return <div className="text-xs text-muted-foreground text-center py-8">No items found</div>;
-            }
-
-            return ordered.map(item => {
-              if (item.type === 'gpio') {
-                const sw = item.data as typeof filteredGpio[0];
-                return (
-                  <GpioSwitchCard
-                    key={sw.id}
-                    gpioSwitch={sw}
-                    targets={gpioTargets}
-                    onToggle={onGpioToggle}
-                    onDelete={onGpioDelete}
-                  />
-                );
-              }
-              const msg = item.data as typeof filtered[0];
-              return (
-                <MessageCard
-                  key={msg.id}
-                  message={msg}
-                  onSend={() => onSend(msg)}
-                  onStartCyclic={() => onStartCyclic(msg.id)}
-                  onStopCyclic={() => onStopCyclic(msg.id)}
-                  onEdit={() => onEdit(msg)}
-                  onDuplicate={() => onDuplicate(msg.id)}
-                  onDelete={() => onDelete(msg.id)}
-                  onRunConditional={onRunConditional ? () => onRunConditional(msg) : undefined}
-                  onStopConditional={onStopConditional ? () => onStopConditional(msg.id) : undefined}
-                  isConditionalRunning={runningConditionalId === msg.id}
-                />
-              );
-            });
-          })()}
+          {filtered.length === 0 && filteredGpio.length === 0 && (
+            <div className="text-xs text-muted-foreground text-center py-8">No items found</div>
+          )}
         </div>
       </ScrollArea>
     </div>
