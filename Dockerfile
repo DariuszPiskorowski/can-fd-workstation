@@ -12,19 +12,28 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# Install system packages + libgpiod runtime & Python bindings (Debian Trixie)
+# Install runtime packages + temporary build deps for pip install gpiod
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     curl \
     libgpiod3 \
-    python3-libgpiod \
+    libgpiod-dev \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies (no gcc/dev needed — gpiod comes from APT)
+# Install Python dependencies (gpiod compiles against libgpiod-dev)
 RUN pip install --no-cache-dir \
     flask \
     flask-socketio \
-    python-can
+    python-can \
+    gpiod
+
+# Remove build-only packages, keep libgpiod3 runtime
+RUN apt-get update \
+    && apt-get remove -y gcc libgpiod-dev \
+    && apt-get autoremove -y \
+    && apt-get install -y --no-install-recommends libgpiod3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy backend
 COPY backend/ /app/backend/
