@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libgpiod3 \
     libgpiod-dev \
+    python3-dev \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
@@ -30,9 +31,9 @@ RUN pip install --no-cache-dir \
 
 # Remove build-only packages, keep libgpiod3 runtime
 RUN apt-get update \
-    && apt-get remove -y gcc libgpiod-dev \
+    && apt-get remove -y gcc libgpiod-dev python3-dev \
     && apt-get autoremove -y \
-    && apt-get install -y --no-install-recommends libgpiod3 \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend
