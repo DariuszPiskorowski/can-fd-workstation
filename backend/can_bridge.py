@@ -19,6 +19,7 @@ import can
 from flask import Flask
 from flask_socketio import SocketIO
 from typing import Optional
+from gpio_manager import init_gpio, cleanup_gpio, list_targets, get_state, set_state
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
