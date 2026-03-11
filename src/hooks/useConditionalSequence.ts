@@ -121,10 +121,15 @@ export function useConditionalSequence(
 
       const expectedPrefix = step.expectedResponseStart.map(b => b.toUpperCase());
 
+      const expectedRxId = (step.rxId || '').toUpperCase();
+
       // Set up RX match callback
       matchCallbackRef.current = (frame: CanFrame) => {
         if (resolved || abortRef.current) return;
         if (frame.direction !== 'RX') return;
+
+        // Filter by RX CAN ID if specified
+        if (expectedRxId && frame.canId.toUpperCase() !== expectedRxId) return;
 
         state.lastRxSeen = frame.dataBytes.slice(0, 8);
         onStateChange(msg.id, { ...state });

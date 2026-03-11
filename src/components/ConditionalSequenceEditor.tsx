@@ -18,6 +18,7 @@ function emptyConditionalStep(): ConditionalStep {
     dlc: 8,
     dataBytes: Array(8).fill('00'),
     canInterface: 'can0',
+    rxId: '18E05609',
     expectedResponseStart: Array(8).fill('00'),
     repeatIntervalMs: 40,
     maxRepeats: 20,
@@ -149,7 +150,12 @@ export function ConditionalSequenceEditor({ steps, onStepsChange, finalOnSuccess
           </div>
 
           {/* Expected Response */}
-          <div>
+          <div className="grid grid-cols-[1fr_2fr] gap-2 items-end">
+            <div>
+              <Label className="text-[10px] text-accent">RX ID (hex)</Label>
+              <Input className="h-7 text-xs font-mono bg-muted" value={step.rxId} onChange={e => updateStep(idx, { rxId: e.target.value.toUpperCase() })} placeholder="e.g. 18E05609" />
+            </div>
+            <div>
             <Label className="text-[10px] text-accent">Expected Response (first 8 bytes) <span className="text-muted-foreground font-normal">— Delete = wildcard</span></Label>
             <HexByteInput
               bytes={step.expectedResponseStart}
@@ -157,6 +163,7 @@ export function ConditionalSequenceEditor({ steps, onStepsChange, finalOnSuccess
               className="mt-1"
               allowWildcard
             />
+            </div>
           </div>
 
           {/* Repeat config */}
