@@ -18,6 +18,7 @@ function emptyConditionalStep(): ConditionalStep {
     dlc: 8,
     dataBytes: Array(8).fill('00'),
     canInterface: 'can0',
+    rxId: '18E05609',
     expectedResponseStart: Array(8).fill('00'),
     repeatIntervalMs: 40,
     maxRepeats: 20,
