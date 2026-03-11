@@ -18,6 +18,7 @@ export interface ConditionalStep {
   dlc: number;
   dataBytes: string[];
   canInterface: CanInterface;
+  rxId: string; // CAN ID to match for expected response
   expectedResponseStart: string[]; // 8 bytes prefix match
   repeatIntervalMs: number;
   maxRepeats: number;

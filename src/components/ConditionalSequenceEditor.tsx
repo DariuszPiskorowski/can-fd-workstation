@@ -163,6 +163,7 @@ export function ConditionalSequenceEditor({ steps, onStepsChange, finalOnSuccess
               className="mt-1"
               allowWildcard
             />
+            </div>
           </div>
 
           {/* Repeat config */}
