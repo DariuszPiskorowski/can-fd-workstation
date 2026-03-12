@@ -88,9 +88,12 @@ export function useCanEngine() {
         let repeats = 0;
         let resolved = false;
         const expectedPrefix = step.expectedResponseStart.map(b => b.toUpperCase());
+        const expectedRxId = (step.rxId || '').trim().toUpperCase();
 
         matchCallbackRef.current = (frame: CanFrame) => {
           if (resolved || abortCondRef.current || frame.direction !== 'RX') return;
+          if (expectedRxId && (frame.canId || '').trim().toUpperCase() !== expectedRxId) return;
+
           state.lastRxSeen = frame.dataBytes.slice(0, 8);
           updateCondState(msg.id, { ...state });
           const rxPrefix = frame.dataBytes.slice(0, 8).map(b => b.toUpperCase());
