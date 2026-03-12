@@ -35,8 +35,8 @@ jobs:
         run: |
           TS=$(date -u +'%Y-%m-%d-%H-%M')
           SHORT_SHA="${GITHUB_SHA::7}"
-          echo "timestamp_tag=${TS}" >> "$GITHUB_OUTPUT"
-          echo "sha_tag=sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          # echo "timestamp_tag=${TS}" >> "$GITHUB_OUTPUT"
+          # echo "sha_tag=sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -47,5 +47,5 @@ jobs:
           platforms: linux/arm64
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.timestamp_tag }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_tag }}
+            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_tag }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
