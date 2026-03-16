@@ -11,6 +11,7 @@ Accepts send_frame, start_cyclic, stop_cyclic events from the UI.
 """
 
 import atexit
+import collections
 import signal
 import sys
 import time
@@ -22,7 +23,9 @@ from typing import Optional
 from gpio_manager import init_gpio, cleanup_gpio, list_targets, get_state, set_state
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+# async_mode='threading' is required because SocketCAN uses native kernel sockets
+# that gevent/eventlet cannot patch. Auto-detection of gevent would break recv().
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # Active CAN buses
 buses: dict[str, Optional[object]] = {"can0": None, "can1": None}
@@ -31,6 +34,34 @@ buses: dict[str, Optional[object]] = {"can0": None, "can1": None}
 cyclic_tasks: dict[str, dict] = {}
 
 shutdown_event = threading.Event()
+
+# --- Echo detection -------------------------------------------------------
+# When we transmit a frame, we record its fingerprint for a short window so
+# that any echo that leaks through (e.g. on vcan or misconfigured SocketCAN)
+# is silently dropped and never forwarded to the UI as an RX frame.
+_ECHO_WINDOW_MS = 50
+_sent_cache: dict[str, collections.deque] = {
+    "can0": collections.deque(maxlen=128),
+    "can1": collections.deque(maxlen=128),
+}
+_sent_cache_lock = threading.Lock()
+
+
+def _record_sent(interface: str, arb_id: int, data: bytes) -> None:
+    """Register a transmitted frame so echoes can be suppressed."""
+    with _sent_cache_lock:
+        _sent_cache[interface].append((arb_id, data, int(time.time() * 1000)))
+
+
+def _is_echo(interface: str, arb_id: int, data: bytes) -> bool:
+    """Return True when the frame looks like our own TX echo within the window."""
+    now = int(time.time() * 1000)
+    with _sent_cache_lock:
+        for aid, d, ts in _sent_cache.get(interface, []):
+            if now - ts <= _ECHO_WINDOW_MS and aid == arb_id and d == data:
+                return True
+    return False
+# --------------------------------------------------------------------------
 
 
 def init_bus(interface: str):
@@ -131,10 +162,14 @@ def rx_listener(interface: str):
             if msg is None:
                 continue
 
-            # Ignore locally generated echo frames. Some SocketCAN/python-can setups
-            # may still surface transmitted frames on the receive socket even when
-            # receive_own_messages is disabled.
+            # Ignore locally generated echo frames.
+            # First check the python-can is_rx flag (available on python-can 4.x /
+            # SocketCAN), then fall back to our own fingerprint cache which covers
+            # environments where receive_own_messages=False is not fully honoured
+            # (e.g. vcan, some USB adapters).
             if not bool(getattr(msg, "is_rx", True)):
+                continue
+            if _is_echo(interface, msg.arbitration_id, bytes(msg.data)):
                 continue
 
             data_hex = [f"{b:02X}" for b in msg.data]
@@ -183,6 +218,7 @@ def handle_send(data):
         )
 
         bus.send(msg)
+        _record_sent(iface, can_id, raw_data)
 
     except Exception as e:
         emit_error(f"TX failed: {e}")
@@ -235,6 +271,7 @@ def handle_start_cyclic(data):
             while not stop_event.is_set() and not shutdown_event.is_set():
                 try:
                     bus.send(msg)
+                    _record_sent(iface, can_id, bytes(raw_data))
                 except Exception as e:
                     print(f"[ERR] Cyclic TX {msg_id}: {e}")
                     emit_error(f"Cyclic TX failed for {msg_id}: {e}")
