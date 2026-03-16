@@ -131,6 +131,12 @@ def rx_listener(interface: str):
             if msg is None:
                 continue
 
+            # Ignore locally generated echo frames. Some SocketCAN/python-can setups
+            # may still surface transmitted frames on the receive socket even when
+            # receive_own_messages is disabled.
+            if not bool(getattr(msg, "is_rx", True)):
+                continue
+
             data_hex = [f"{b:02X}" for b in msg.data]
 
             socketio.emit("rx_frame", {
