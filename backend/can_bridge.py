@@ -36,8 +36,8 @@ shutdown_event = threading.Event()
 def init_bus(interface: str):
     """Try to open a CAN interface. Returns None if not available."""
     try:
-        bus = can.Bus(channel=interface, interface="socketcan", fd=True)
-        print(f"[OK] {interface} opened")
+        bus = can.Bus(channel=interface, interface="socketcan", fd=True, receive_own_messages=False)
+        print(f"[OK] {interface} opened (receive_own_messages=False)")
         return bus
     except Exception as e:
         print(f"[WARN] {interface} not available: {e}")
