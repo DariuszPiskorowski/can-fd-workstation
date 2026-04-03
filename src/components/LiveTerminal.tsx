@@ -122,7 +122,7 @@ export function LiveTerminal({ frames, isPaused, onPauseToggle, onClear, txCount
         {filtered.map(frame => (
           <div
             key={frame.id}
-            className={`can-terminal-row flex items-center gap-2 ${selectedFrame?.id === frame.id ? 'selected' : ''} ${frame.parserMatched ? 'border-l-2 border-l-can-parser' : ''}`}
+            className={`can-terminal-row flex items-start gap-2 ${selectedFrame?.id === frame.id ? 'selected' : ''} ${frame.parserMatched ? 'border-l-2 border-l-can-parser' : ''}`}
             onClick={() => setSelectedFrame(selectedFrame?.id === frame.id ? null : frame)}
           >
             <span className="w-[72px] text-muted-foreground">{formatTime(frame.timestamp)}</span>
