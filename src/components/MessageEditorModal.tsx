@@ -113,7 +113,7 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
     onClose();
   };
 
-  const DLC_OPTIONS = [0,1,2,3,4,5,6,7,8,12,16,20,24,32,48,64];
+  const DLC_OPTIONS = [8, 16, 64];
   const hasSequence = (form.sequenceSteps?.length || 0) > 0;
 
   return (
