@@ -75,7 +75,9 @@ export function ConditionalSequenceEditor({ steps, onStepsChange, finalOnSuccess
   const handleStepDlcChange = (idx: number, dlc: number) => {
     const step = steps[idx];
     const dataBytes = Array(dlc).fill('00').map((v, i) => step.dataBytes[i] || '00');
-    updateStep(idx, { dlc, dataBytes });
+    const isFd = dlc > 8 ? true : (dlc === 8 ? (step.isFd || false) : false);
+    const bitrateSwitch = isFd ? (step.bitrateSwitch ?? false) : false;
+    updateStep(idx, { dlc, dataBytes, isFd, bitrateSwitch });
   };
 
   const handleFinalDlcChange = (dlc: number) => {
