@@ -9,6 +9,8 @@ export interface SequenceStep {
   dlc: number;
   dataBytes: string[];
   canInterface: CanInterface;
+  isFd?: boolean;
+  bitrateSwitch?: boolean;
 }
 
 export interface ConditionalStep {

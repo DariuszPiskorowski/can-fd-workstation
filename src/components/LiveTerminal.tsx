@@ -122,7 +122,7 @@ export function LiveTerminal({ frames, isPaused, onPauseToggle, onClear, txCount
         {filtered.map(frame => (
           <div
             key={frame.id}
-            className={`can-terminal-row flex items-center gap-2 ${selectedFrame?.id === frame.id ? 'selected' : ''} ${frame.parserMatched ? 'border-l-2 border-l-can-parser' : ''}`}
+            className={`can-terminal-row flex items-start gap-2 ${selectedFrame?.id === frame.id ? 'selected' : ''} ${frame.parserMatched ? 'border-l-2 border-l-can-parser' : ''}`}
             onClick={() => setSelectedFrame(selectedFrame?.id === frame.id ? null : frame)}
           >
             <span className="w-[72px] text-muted-foreground">{formatTime(frame.timestamp)}</span>
@@ -132,10 +132,12 @@ export function LiveTerminal({ frames, isPaused, onPauseToggle, onClear, txCount
             <span className="w-[72px] font-mono">{frame.canId}</span>
             <span className="w-10 text-muted-foreground">{frame.frameType === 'CAN FD' ? 'FD' : 'CL'}</span>
             <span className="w-6 text-muted-foreground">{frame.dlc}</span>
-            <span className="flex-1 font-mono truncate">
-              {frame.dataBytes.slice(0, 16).join(' ')}{frame.dlc > 16 ? ' …' : ''}
+            <span className="flex-1 font-mono min-w-0">
+              <span className="block leading-[1.4]">
+                {frame.dataBytes.join(' ')}
+              </span>
               {frame.seqAnnotation && (
-                <span className="ml-2 text-[9px] font-semibold px-1 py-0.5 rounded" style={{ color: 'hsl(var(--primary))', background: 'hsl(var(--primary) / 0.12)' }}>
+                <span className="inline-block text-[9px] font-semibold px-1 py-0.5 rounded mt-0.5" style={{ color: 'hsl(var(--primary))', background: 'hsl(var(--primary) / 0.12)' }}>
                   {frame.seqAnnotation}
                 </span>
               )}
