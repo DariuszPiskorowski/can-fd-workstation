@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PredefinedMessage, MessageCategory, SendMode, SequenceStep, CanInterface, ConditionalStep, FinalSuccessMessage } from '@/types/can';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
