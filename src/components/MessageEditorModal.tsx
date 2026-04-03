@@ -72,7 +72,9 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
 
   const handleDlcChange = (dlc: number) => {
     const bytes = Array(dlc).fill('00').map((v, i) => form.dataBytes[i] || '00');
-    setForm({ ...form, dlc, dataBytes: bytes });
+    const isFd = dlc > 8 ? true : (dlc === 8 ? (form.isFd || false) : false);
+    const bitrateSwitch = isFd ? (form.bitrateSwitch ?? false) : false;
+    setForm({ ...form, dlc, dataBytes: bytes, isFd, bitrateSwitch });
   };
 
   const updateStepBytes = (stepIdx: number, newBytes: string[]) => {
