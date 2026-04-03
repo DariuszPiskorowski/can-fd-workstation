@@ -180,6 +180,30 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
                       </Select>
                     </div>
                   </div>
+                  {/* FD & BRS flags */}
+                  <div className="flex items-center gap-4 mt-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox
+                        checked={form.isFd || false}
+                        onCheckedChange={v => {
+                          const isFd = !!v;
+                          setForm({ ...form, isFd, bitrateSwitch: isFd ? (form.bitrateSwitch ?? false) : false });
+                        }}
+                        disabled={form.dlc > 8}
+                        className="h-3.5 w-3.5"
+                      />
+                      <span className="text-[10px]">CAN FD {form.dlc > 8 && <span className="text-muted-foreground">(auto)</span>}</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox
+                        checked={form.bitrateSwitch || false}
+                        onCheckedChange={v => setForm({ ...form, bitrateSwitch: !!v })}
+                        disabled={!form.isFd && form.dlc <= 8}
+                        className="h-3.5 w-3.5"
+                      />
+                      <span className="text-[10px]">BRS</span>
+                    </label>
+                  </div>
                   <div>
                     <Label className="text-[10px]">Data Bytes</Label>
                     <HexByteInput bytes={form.dataBytes} onChange={updateBytes} className="mt-1" />
