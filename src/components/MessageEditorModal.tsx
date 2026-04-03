@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PredefinedMessage, MessageCategory, SendMode, SequenceStep, CanInterface, ConditionalStep, FinalSuccessMessage } from '@/types/can';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -71,7 +72,9 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
 
   const handleDlcChange = (dlc: number) => {
     const bytes = Array(dlc).fill('00').map((v, i) => form.dataBytes[i] || '00');
-    setForm({ ...form, dlc, dataBytes: bytes });
+    const isFd = dlc > 8 ? true : (dlc === 8 ? (form.isFd || false) : false);
+    const bitrateSwitch = isFd ? (form.bitrateSwitch ?? false) : false;
+    setForm({ ...form, dlc, dataBytes: bytes, isFd, bitrateSwitch });
   };
 
   const updateStepBytes = (stepIdx: number, newBytes: string[]) => {
@@ -110,7 +113,7 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
     onClose();
   };
 
-  const DLC_OPTIONS = [0,1,2,3,4,5,6,7,8,12,16,20,24,32,48,64];
+  const DLC_OPTIONS = [8, 16, 64];
   const hasSequence = (form.sequenceSteps?.length || 0) > 0;
 
   return (
@@ -176,6 +179,30 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+                  {/* FD & BRS flags */}
+                  <div className="flex items-center gap-4 mt-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox
+                        checked={form.isFd || false}
+                        onCheckedChange={v => {
+                          const isFd = !!v;
+                          setForm({ ...form, isFd, bitrateSwitch: isFd ? (form.bitrateSwitch ?? false) : false });
+                        }}
+                        disabled={form.dlc > 8}
+                        className="h-3.5 w-3.5"
+                      />
+                      <span className="text-[10px]">CAN FD {form.dlc > 8 && <span className="text-muted-foreground">(auto)</span>}</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox
+                        checked={form.bitrateSwitch || false}
+                        onCheckedChange={v => setForm({ ...form, bitrateSwitch: !!v })}
+                        disabled={!form.isFd && form.dlc <= 8}
+                        className="h-3.5 w-3.5"
+                      />
+                      <span className="text-[10px]">BRS</span>
+                    </label>
                   </div>
                   <div>
                     <Label className="text-[10px]">Data Bytes</Label>
