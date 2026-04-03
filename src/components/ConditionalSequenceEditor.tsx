@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { HexByteInput } from '@/components/HexByteInput';
 import { Plus, Trash2, Copy, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 
