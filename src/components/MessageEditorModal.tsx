@@ -240,6 +240,30 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
                         </Select>
                       </div>
                     </div>
+                    {/* FD & BRS flags for step */}
+                    <div className="flex items-center gap-4 mt-1">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <Checkbox
+                          checked={step.isFd || false}
+                          onCheckedChange={v => {
+                            const isFd = !!v;
+                            updateStep(idx, { isFd, bitrateSwitch: isFd ? (step.bitrateSwitch ?? false) : false });
+                          }}
+                          disabled={step.dlc > 8}
+                          className="h-3.5 w-3.5"
+                        />
+                        <span className="text-[10px]">CAN FD {step.dlc > 8 && <span className="text-muted-foreground">(auto)</span>}</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <Checkbox
+                          checked={step.bitrateSwitch || false}
+                          onCheckedChange={v => updateStep(idx, { bitrateSwitch: !!v })}
+                          disabled={!step.isFd && step.dlc <= 8}
+                          className="h-3.5 w-3.5"
+                        />
+                        <span className="text-[10px]">BRS</span>
+                      </label>
+                    </div>
                     <div>
                       <Label className="text-[10px]">Data Bytes</Label>
                       <HexByteInput bytes={step.dataBytes} onChange={(newBytes) => updateStepBytes(idx, newBytes)} className="mt-1" />
