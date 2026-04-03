@@ -146,6 +146,31 @@ export function ConditionalSequenceEditor({ steps, onStepsChange, finalOnSuccess
             </div>
           </div>
 
+          {/* FD & BRS */}
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-1.5 text-[10px]">
+              <Checkbox
+                checked={step.isFd || false}
+                onCheckedChange={v => {
+                  const isFd = !!v;
+                  updateStep(idx, { isFd, bitrateSwitch: isFd ? (step.bitrateSwitch ?? false) : false });
+                }}
+                disabled={step.dlc > 8}
+                className="h-3.5 w-3.5"
+              />
+              CAN FD
+            </label>
+            <label className="flex items-center gap-1.5 text-[10px]">
+              <Checkbox
+                checked={step.bitrateSwitch || false}
+                onCheckedChange={v => updateStep(idx, { bitrateSwitch: !!v })}
+                disabled={!(step.isFd || step.dlc > 8)}
+                className="h-3.5 w-3.5"
+              />
+              BRS
+            </label>
+          </div>
+
           {/* TX Data */}
           <div>
             <Label className="text-[10px]">TX Data Bytes</Label>
