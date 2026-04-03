@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { HexByteInput } from '@/components/HexByteInput';
 import { Plus, Trash2, Copy, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 
-const DLC_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64];
+const DLC_OPTIONS = [8, 16, 64];
 
 function emptyConditionalStep(): ConditionalStep {
   return {
