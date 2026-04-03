@@ -88,6 +88,8 @@ export function MessageEditorModal({ open, onClose, onSave, message }: Props) {
     const step = { ...steps[stepIdx] };
     step.dlc = dlc;
     step.dataBytes = Array(dlc).fill('00').map((v, i) => step.dataBytes[i] || '00');
+    step.isFd = dlc > 8 ? true : (dlc === 8 ? (step.isFd || false) : false);
+    step.bitrateSwitch = step.isFd ? (step.bitrateSwitch ?? false) : false;
     steps[stepIdx] = step;
     setForm({ ...form, sequenceSteps: steps });
   };
