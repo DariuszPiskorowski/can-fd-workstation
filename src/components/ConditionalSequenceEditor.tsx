@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { HexByteInput } from '@/components/HexByteInput';
 import { Plus, Trash2, Copy, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 
@@ -74,7 +75,9 @@ export function ConditionalSequenceEditor({ steps, onStepsChange, finalOnSuccess
   const handleStepDlcChange = (idx: number, dlc: number) => {
     const step = steps[idx];
     const dataBytes = Array(dlc).fill('00').map((v, i) => step.dataBytes[i] || '00');
-    updateStep(idx, { dlc, dataBytes });
+    const isFd = dlc > 8 ? true : (dlc === 8 ? (step.isFd || false) : false);
+    const bitrateSwitch = isFd ? (step.bitrateSwitch ?? false) : false;
+    updateStep(idx, { dlc, dataBytes, isFd, bitrateSwitch });
   };
 
   const handleFinalDlcChange = (dlc: number) => {
@@ -141,6 +144,31 @@ export function ConditionalSequenceEditor({ steps, onStepsChange, finalOnSuccess
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* FD & BRS */}
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-1.5 text-[10px]">
+              <Checkbox
+                checked={step.isFd || false}
+                onCheckedChange={v => {
+                  const isFd = !!v;
+                  updateStep(idx, { isFd, bitrateSwitch: isFd ? (step.bitrateSwitch ?? false) : false });
+                }}
+                disabled={step.dlc > 8}
+                className="h-3.5 w-3.5"
+              />
+              CAN FD
+            </label>
+            <label className="flex items-center gap-1.5 text-[10px]">
+              <Checkbox
+                checked={step.bitrateSwitch || false}
+                onCheckedChange={v => updateStep(idx, { bitrateSwitch: !!v })}
+                disabled={!(step.isFd || step.dlc > 8)}
+                className="h-3.5 w-3.5"
+              />
+              BRS
+            </label>
           </div>
 
           {/* TX Data */}
