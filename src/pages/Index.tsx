@@ -109,6 +109,16 @@ const Index = () => {
             onTogglePin={handleTogglePin}
             onExport={engine.exportParserRules}
             onImport={engine.importParserRules}
+            recorder={{
+              config: recorder.config,
+              status: recorder.status,
+              frameCount: recorder.frameCount,
+              onUpdateConfig: recorder.updateConfig,
+              onStartManual: recorder.startRecording,
+              onArm: recorder.armTrigger,
+              onStop: recorder.stopAndDownload,
+              onCancel: recorder.cancel,
+            }}
           />
         </div>
       </div>
