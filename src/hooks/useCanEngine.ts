@@ -177,6 +177,7 @@ export function useCanEngine() {
         isFd: data.isFd ?? false, bitrateSwitch: data.bitrateSwitch ?? false, isExtendedId: data.isExtendedId ?? true,
       };
       setFrames(prev => { const next = [...prev, frame]; return next.length > 2000 ? next.slice(-1500) : next; });
+      frameListenerRef.current?.(frame);
       setConnectionStatus(prev => ({ ...prev, rxCount: prev.rxCount + 1, lastActivity: Date.now() }));
 
       // Feed to conditional sequence matcher
