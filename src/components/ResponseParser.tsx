@@ -121,6 +121,17 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
           )}
         </div>
       </ScrollArea>
+
+      <FrameRecorderPanel
+        config={recorder.config}
+        status={recorder.status}
+        frameCount={recorder.frameCount}
+        onUpdateConfig={recorder.onUpdateConfig}
+        onStartManual={recorder.onStartManual}
+        onArm={recorder.onArm}
+        onStop={recorder.onStop}
+        onCancel={recorder.onCancel}
+      />
     </div>
   );
 }
