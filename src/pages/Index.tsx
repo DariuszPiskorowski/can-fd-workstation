@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCanEngine } from '@/hooks/useCanEngine';
 import { useGpio } from '@/hooks/useGpio';
+import { useFrameRecorder } from '@/hooks/useFrameRecorder';
 import { StatusBar } from '@/components/StatusBar';
 import { CommandLibrary } from '@/components/CommandLibrary';
 import { LiveTerminal } from '@/components/LiveTerminal';
@@ -14,6 +15,13 @@ import { PredefinedMessage, ParserRule } from '@/types/can';
 const Index = () => {
   const engine = useCanEngine();
   const gpio = useGpio(engine.socketRef);
+  const recorder = useFrameRecorder();
+
+  // Wire frame listener to recorder
+  useEffect(() => {
+    engine.frameListenerRef.current = recorder.feedFrame;
+    return () => { engine.frameListenerRef.current = null; };
+  }, [engine.frameListenerRef, recorder.feedFrame]);
   const [msgModalOpen, setMsgModalOpen] = useState(false);
   const [editingMsg, setEditingMsg] = useState<PredefinedMessage | null>(null);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
@@ -107,6 +115,16 @@ const Index = () => {
             onTogglePin={handleTogglePin}
             onExport={engine.exportParserRules}
             onImport={engine.importParserRules}
+            recorder={{
+              config: recorder.config,
+              status: recorder.status,
+              frameCount: recorder.frameCount,
+              onUpdateConfig: recorder.updateConfig,
+              onStartManual: recorder.startRecording,
+              onArm: recorder.armTrigger,
+              onStop: recorder.stopAndDownload,
+              onCancel: recorder.cancel,
+            }}
           />
         </div>
       </div>

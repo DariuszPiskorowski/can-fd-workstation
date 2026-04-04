@@ -2,7 +2,8 @@ import { ParserRule, ParsedValue } from '@/types/can';
 import { Plus, Trash2, Pin, Download, Upload, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+import { FrameRecorderPanel } from '@/components/FrameRecorderPanel';
+import { RecorderConfig, RecorderStatus } from '@/hooks/useFrameRecorder';
 
 interface Props {
   rules: ParserRule[];
@@ -13,9 +14,19 @@ interface Props {
   onTogglePin: (id: string) => void;
   onExport: () => void;
   onImport: (json: string) => void;
+  recorder: {
+    config: RecorderConfig;
+    status: RecorderStatus;
+    frameCount: number;
+    onUpdateConfig: (c: RecorderConfig) => void;
+    onStartManual: () => void;
+    onArm: () => void;
+    onStop: () => void;
+    onCancel: () => void;
+  };
 }
 
-export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onDeleteRule, onTogglePin, onExport, onImport }: Props) {
+export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onDeleteRule, onTogglePin, onExport, onImport, recorder }: Props) {
   const handleImport = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -109,6 +120,17 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
           )}
         </div>
       </ScrollArea>
+
+      <FrameRecorderPanel
+        config={recorder.config}
+        status={recorder.status}
+        frameCount={recorder.frameCount}
+        onUpdateConfig={recorder.onUpdateConfig}
+        onStartManual={recorder.onStartManual}
+        onArm={recorder.onArm}
+        onStop={recorder.onStop}
+        onCancel={recorder.onCancel}
+      />
     </div>
   );
 }

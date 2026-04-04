@@ -28,6 +28,7 @@ export function useCanEngine() {
   const parserRulesRef = useRef(parserRules);
   const abortCondRef = useRef(false);
   const matchCallbackRef = useRef<((frame: CanFrame) => void) | null>(null);
+  const frameListenerRef = useRef<((frame: CanFrame) => void) | null>(null);
 
   isPausedRef.current = isPaused;
   parserRulesRef.current = parserRules;
@@ -51,6 +52,7 @@ export function useCanEngine() {
       status: 'Sent',
     };
     setFrames(prev => [...prev, frame]);
+    frameListenerRef.current?.(frame);
     setConnectionStatus(prev => ({ ...prev, txCount: prev.txCount + 1, lastActivity: Date.now() }));
     socketRef.current?.emit('send_frame', {
       canId: txId, dlc, data: dataBytes, interface: canInterface,
@@ -175,6 +177,7 @@ export function useCanEngine() {
         isFd: data.isFd ?? false, bitrateSwitch: data.bitrateSwitch ?? false, isExtendedId: data.isExtendedId ?? true,
       };
       setFrames(prev => { const next = [...prev, frame]; return next.length > 2000 ? next.slice(-1500) : next; });
+      frameListenerRef.current?.(frame);
       setConnectionStatus(prev => ({ ...prev, rxCount: prev.rxCount + 1, lastActivity: Date.now() }));
 
       // Feed to conditional sequence matcher
@@ -253,6 +256,6 @@ export function useCanEngine() {
     addParserRule, updateParserRule, deleteParserRule,
     exportMessages, exportParserRules, importMessages, importParserRules,
     runConditionalSequence, stopConditionalSequence, runningConditionalId,
-    socketRef,
+    socketRef, frameListenerRef,
   };
 }
