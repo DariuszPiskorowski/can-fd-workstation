@@ -86,6 +86,7 @@ export function useFrameRecorder() {
     if (cfg.format === 'csv') {
       bufferRef.current.push('Timestamp;Direction;CAN_ID;Interface;Type;DLC;Data');
     }
+    setFrameCount(0);
     setStatus('recording');
     statusRef.current = 'recording';
   }, []);
@@ -96,6 +97,7 @@ export function useFrameRecorder() {
     if (cfg.format === 'csv') {
       bufferRef.current.push('Timestamp;Direction;CAN_ID;Interface;Type;DLC;Data');
     }
+    setFrameCount(0);
     setStatus('armed');
     statusRef.current = 'armed';
   }, []);
@@ -113,12 +115,14 @@ export function useFrameRecorder() {
     a.click();
     URL.revokeObjectURL(url);
     bufferRef.current = [];
+    setFrameCount(0);
     setStatus('idle');
     statusRef.current = 'idle';
   }, []);
 
   const cancel = useCallback(() => {
     bufferRef.current = [];
+    setFrameCount(0);
     setStatus('idle');
     statusRef.current = 'idle';
   }, []);
@@ -133,12 +137,14 @@ export function useFrameRecorder() {
         statusRef.current = 'recording';
         setStatus('recording');
         bufferRef.current.push(frameLine(frame, cfg.format));
+        setFrameCount(bufferRef.current.length);
       }
       return;
     }
 
     if (st === 'recording') {
       bufferRef.current.push(frameLine(frame, cfg.format));
+      setFrameCount(bufferRef.current.length);
       if (cfg.stopTrigger.enabled && matchesTrigger(frame, cfg.stopTrigger)) {
         stopAndDownload();
       }
@@ -148,6 +154,6 @@ export function useFrameRecorder() {
   return {
     config, updateConfig, status,
     startRecording, armTrigger, stopAndDownload, cancel, feedFrame,
-    frameCount: bufferRef.current.length,
+    frameCount,
   };
 }
