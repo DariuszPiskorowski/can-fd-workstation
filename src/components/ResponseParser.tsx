@@ -3,7 +3,6 @@ import { Plus, Trash2, Pin, Download, Upload, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FrameRecorderPanel } from '@/components/FrameRecorderPanel';
-import { FrameRecorderPanel } from '@/components/FrameRecorderPanel';
 import { RecorderConfig, RecorderStatus } from '@/hooks/useFrameRecorder';
 
 interface Props {
