@@ -52,6 +52,7 @@ export function useCanEngine() {
       status: 'Sent',
     };
     setFrames(prev => [...prev, frame]);
+    frameListenerRef.current?.(frame);
     setConnectionStatus(prev => ({ ...prev, txCount: prev.txCount + 1, lastActivity: Date.now() }));
     socketRef.current?.emit('send_frame', {
       canId: txId, dlc, data: dataBytes, interface: canInterface,
