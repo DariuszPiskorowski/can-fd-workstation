@@ -66,6 +66,7 @@ function frameLine(frame: CanFrame, format: RecordFormat): string {
 export function useFrameRecorder() {
   const [config, setConfig] = useState<RecorderConfig>(loadConfig);
   const [status, setStatus] = useState<RecorderStatus>('idle');
+  const [frameCount, setFrameCount] = useState(0);
   const bufferRef = useRef<string[]>([]);
   const statusRef = useRef<RecorderStatus>('idle');
   const configRef = useRef(config);
