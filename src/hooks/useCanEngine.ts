@@ -28,6 +28,7 @@ export function useCanEngine() {
   const parserRulesRef = useRef(parserRules);
   const abortCondRef = useRef(false);
   const matchCallbackRef = useRef<((frame: CanFrame) => void) | null>(null);
+  const frameListenerRef = useRef<((frame: CanFrame) => void) | null>(null);
 
   isPausedRef.current = isPaused;
   parserRulesRef.current = parserRules;
