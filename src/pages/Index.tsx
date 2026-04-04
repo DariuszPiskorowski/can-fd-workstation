@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCanEngine } from '@/hooks/useCanEngine';
 import { useGpio } from '@/hooks/useGpio';
+import { useFrameRecorder } from '@/hooks/useFrameRecorder';
 import { StatusBar } from '@/components/StatusBar';
 import { CommandLibrary } from '@/components/CommandLibrary';
 import { LiveTerminal } from '@/components/LiveTerminal';
@@ -14,6 +15,7 @@ import { PredefinedMessage, ParserRule } from '@/types/can';
 const Index = () => {
   const engine = useCanEngine();
   const gpio = useGpio(engine.socketRef);
+  const recorder = useFrameRecorder();
   const [msgModalOpen, setMsgModalOpen] = useState(false);
   const [editingMsg, setEditingMsg] = useState<PredefinedMessage | null>(null);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);

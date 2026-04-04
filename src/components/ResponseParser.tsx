@@ -2,7 +2,7 @@ import { ParserRule, ParsedValue } from '@/types/can';
 import { Plus, Trash2, Pin, Download, Upload, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+import { FrameRecorderPanel } from '@/components/FrameRecorderPanel';
 import { FrameRecorderPanel } from '@/components/FrameRecorderPanel';
 import { RecorderConfig, RecorderStatus } from '@/hooks/useFrameRecorder';
 
