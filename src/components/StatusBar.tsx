@@ -60,6 +60,7 @@ export function StatusBar({ status }: Props) {
       >
         {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
       </button>
+      <span className="text-[9px] font-mono text-muted-foreground/60 select-none">v2.1</span>
     </div>
   );
 }
