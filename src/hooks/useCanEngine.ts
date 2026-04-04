@@ -256,6 +256,6 @@ export function useCanEngine() {
     addParserRule, updateParserRule, deleteParserRule,
     exportMessages, exportParserRules, importMessages, importParserRules,
     runConditionalSequence, stopConditionalSequence, runningConditionalId,
-    socketRef,
+    socketRef, frameListenerRef,
   };
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCanEngine } from '@/hooks/useCanEngine';
 import { useGpio } from '@/hooks/useGpio';
 import { useFrameRecorder } from '@/hooks/useFrameRecorder';
@@ -16,6 +16,12 @@ const Index = () => {
   const engine = useCanEngine();
   const gpio = useGpio(engine.socketRef);
   const recorder = useFrameRecorder();
+
+  // Wire frame listener to recorder
+  useEffect(() => {
+    engine.frameListenerRef.current = recorder.feedFrame;
+    return () => { engine.frameListenerRef.current = null; };
+  }, [engine.frameListenerRef, recorder.feedFrame]);
   const [msgModalOpen, setMsgModalOpen] = useState(false);
   const [editingMsg, setEditingMsg] = useState<PredefinedMessage | null>(null);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
