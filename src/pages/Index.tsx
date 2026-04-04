@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCanEngine } from '@/hooks/useCanEngine';
 import { useGpio } from '@/hooks/useGpio';
 import { useFrameRecorder } from '@/hooks/useFrameRecorder';
