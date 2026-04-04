@@ -42,9 +42,9 @@ function TriggerEditor({ label, trigger, onChange }: { label: string; trigger: R
           <div>
             <Label className="text-[10px] text-muted-foreground">Data prefix (XX = wildcard)</Label>
             <HexByteInput
-              bytes={trigger.prefixBytes}
+              bytes={trigger.prefixBytes.slice(0, 8)}
               onChange={(bytes) => onChange({ ...trigger, prefixBytes: bytes })}
-              maxBytes={8}
+              allowWildcard
             />
           </div>
         </>

@@ -3,6 +3,8 @@ import { Plus, Trash2, Pin, Download, Upload, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { FrameRecorderPanel } from '@/components/FrameRecorderPanel';
+import { RecorderConfig, RecorderStatus } from '@/hooks/useFrameRecorder';
 
 interface Props {
   rules: ParserRule[];
@@ -13,6 +15,16 @@ interface Props {
   onTogglePin: (id: string) => void;
   onExport: () => void;
   onImport: (json: string) => void;
+  recorder: {
+    config: RecorderConfig;
+    status: RecorderStatus;
+    frameCount: number;
+    onUpdateConfig: (c: RecorderConfig) => void;
+    onStartManual: () => void;
+    onArm: () => void;
+    onStop: () => void;
+    onCancel: () => void;
+  };
 }
 
 export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onDeleteRule, onTogglePin, onExport, onImport }: Props) {
