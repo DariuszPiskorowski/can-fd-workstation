@@ -188,6 +188,11 @@
     box-shadow: 0 0 6px hsl(var(--can-error) / 0.5);
   }
 
+  .can-byte-highlight {
+    color: hsl(var(--accent));
+    font-weight: 600;
+  }
+
   .can-cyclic-indicator {
     @apply text-xs font-semibold px-1.5 py-0.5 rounded;
     color: hsl(var(--can-cyclic));
