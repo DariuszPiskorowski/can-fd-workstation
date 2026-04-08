@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { CanFrame } from '@/types/can';
-import { Pause, Play, Trash2, Search, ArrowDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { Pause, Play, Trash2, Search, ArrowDown, ChevronDown, ChevronUp, Highlighter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Props {
   frames: CanFrame[];
@@ -21,6 +22,7 @@ export function LiveTerminal({ frames, isPaused, onPauseToggle, onClear, txCount
   const [idFilter, setIdFilter] = useState('');
   const [dataSearch, setDataSearch] = useState('');
   const [selectedFrame, setSelectedFrame] = useState<CanFrame | null>(null);
+  const [highlightNonZero, setHighlightNonZero] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
@@ -105,6 +107,14 @@ export function LiveTerminal({ frames, isPaused, onPauseToggle, onClear, txCount
             className="h-6 text-[10px] font-mono bg-muted border-border pl-6"
           />
         </div>
+        <label className="flex items-center gap-1.5 cursor-pointer select-none" title="Highlight non-zero bytes">
+          <Checkbox
+            checked={highlightNonZero}
+            onCheckedChange={(v) => setHighlightNonZero(!!v)}
+            className="h-3.5 w-3.5"
+          />
+          <Highlighter className="h-3 w-3 text-muted-foreground" />
+        </label>
       </div>
 
       {/* Column headers */}
@@ -134,7 +144,9 @@ export function LiveTerminal({ frames, isPaused, onPauseToggle, onClear, txCount
             <span className="w-6 text-muted-foreground">{frame.dlc}</span>
             <span className="flex-1 font-mono min-w-0">
               <span className="block leading-[1.4]">
-                {frame.dataBytes.join(' ')}
+                {highlightNonZero ? frame.dataBytes.map((b, i) => (
+                  <span key={i} className={b !== '00' ? 'can-byte-highlight' : ''}>{b}{i < frame.dataBytes.length - 1 ? ' ' : ''}</span>
+                )) : frame.dataBytes.join(' ')}
               </span>
               {frame.seqAnnotation && (
                 <span className="inline-block text-[9px] font-semibold px-1 py-0.5 rounded mt-0.5" style={{ color: 'hsl(var(--primary))', background: 'hsl(var(--primary) / 0.12)' }}>
