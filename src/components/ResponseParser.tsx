@@ -26,6 +26,8 @@ interface Props {
     onStop: () => void;
     onCancel: () => void;
   };
+}
+
 export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onDeleteRule, onTogglePin, onExport, onImport, recorder }: Props) {
   const [showLastOnly, setShowLastOnly] = useState(false);
 
