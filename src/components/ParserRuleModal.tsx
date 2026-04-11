@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ParserRule, ParserRuleCondition, Endianness, InterpretationType, CanInterface } from '@/types/can';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -225,6 +226,17 @@ export function ParserRuleModal({ open, onClose, onSave, rule }: Props) {
             <Button variant="outline" size="sm" className="w-full text-xs gap-1" onClick={addCondition}>
               <Plus className="h-3 w-3" /> Add Condition Section
             </Button>
+
+            {(form.additionalConditions && form.additionalConditions.length > 0) && (
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none pt-1">
+                <Checkbox
+                  checked={form.showLastOnly ?? false}
+                  onCheckedChange={(v) => setForm({ ...form, showLastOnly: !!v })}
+                  className="h-3.5 w-3.5"
+                />
+                Show last matched state only
+              </label>
+            )}
           </div>
         </div>
 

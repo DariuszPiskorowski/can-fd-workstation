@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ParserRule, ParsedValue } from '@/types/can';
 import { Plus, Trash2, Pin, Download, Upload, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
