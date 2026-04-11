@@ -258,7 +258,7 @@ export function useCanEngine() {
 
   const addParserRule = useCallback((rule: ParserRule) => setParserRules(prev => [...prev, rule]), []);
   const updateParserRule = useCallback((rule: ParserRule) => setParserRules(prev => prev.map(r => r.id === rule.id ? rule : r)), []);
-  const deleteParserRule = useCallback((id: string) => { setParserRules(prev => prev.filter(r => r.id !== id)); setParsedValues(prev => { const next = new Map(prev); next.delete(id); return next; }); }, []);
+  const deleteParserRule = useCallback((id: string) => { setParserRules(prev => prev.filter(r => r.id !== id)); setParsedValues(prev => { const next = new Map(prev); for (const key of next.keys()) { if (key === id || key.startsWith(`${id}__`)) next.delete(key); } return next; }); }, []);
 
   const exportMessages = useCallback(() => { const blob = new Blob([JSON.stringify(messages, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'can-messages.json'; a.click(); URL.revokeObjectURL(url); }, [messages]);
   const exportParserRules = useCallback(() => { const blob = new Blob([JSON.stringify(parserRules, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'parser-rules.json'; a.click(); URL.revokeObjectURL(url); }, [parserRules]);
