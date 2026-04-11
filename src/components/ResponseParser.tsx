@@ -2,7 +2,6 @@ import { ParserRule, ParsedValue } from '@/types/can';
 import { Plus, Trash2, Pin, Download, Upload, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Checkbox } from '@/components/ui/checkbox';
 import { FrameRecorderPanel } from '@/components/FrameRecorderPanel';
 import { RecorderConfig, RecorderStatus } from '@/hooks/useFrameRecorder';
 
@@ -28,7 +27,6 @@ interface Props {
 }
 
 export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onDeleteRule, onTogglePin, onExport, onImport, recorder }: Props) {
-  const [showLastOnly, setShowLastOnly] = useState(false);
 
   const handleImport = () => {
     const input = document.createElement('input');
@@ -54,11 +52,7 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
     <div className="can-panel h-full flex flex-col">
       <div className="can-panel-header">
         <span>Response Parser</span>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1 text-[10px] text-muted-foreground cursor-pointer select-none">
-            <Checkbox checked={showLastOnly} onCheckedChange={(v) => setShowLastOnly(!!v)} className="h-3.5 w-3.5" />
-            Last only
-          </label>
+        <div className="flex gap-1">
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onExport} title="Export"><Upload className="h-3.5 w-3.5" /></Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleImport} title="Import"><Download className="h-3.5 w-3.5" /></Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onAddRule} title="Add Rule"><Plus className="h-3.5 w-3.5" /></Button>
@@ -74,12 +68,11 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
               val: parsedValues.get(`${rule.id}__${c.id}`),
             }));
 
-            // When "Last only" is on, find the most recent value across primary + conditions
+            // When rule has "showLastOnly", show only the most recent matched value
             let filteredPrimary = val;
             let filteredCondVals = condVals;
 
-            if (showLastOnly) {
-              // Collect all values with timestamps
+            if (rule.showLastOnly) {
               const candidates: { isPrimary: boolean; ts: number; condEntry?: typeof condVals[0] }[] = [];
               if (val) candidates.push({ isPrimary: true, ts: val.timestamp });
               for (const cv of condVals) {
@@ -124,11 +117,11 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
                   </div>
                 </div>
 
-                {filteredPrimary && <ParsedValueRow val={filteredPrimary} rule={rule} formatTime={formatTime} label={showLastOnly ? undefined : "Primary"} />}
-                {!showLastOnly && !filteredPrimary && <ParsedValueRow val={undefined} rule={rule} formatTime={formatTime} label="Primary" />}
+                {filteredPrimary && <ParsedValueRow val={filteredPrimary} rule={rule} formatTime={formatTime} label={rule.showLastOnly ? undefined : "Primary"} />}
+                {!rule.showLastOnly && !filteredPrimary && <ParsedValueRow val={undefined} rule={rule} formatTime={formatTime} label="Primary" />}
 
                 {filteredCondVals.map(({ cond, val: cv }) => (
-                  <ParsedValueRow key={cond.id} val={cv} rule={{ ...rule, interpretation: cond.interpretation, scale: cond.scale, unit: cond.unit }} formatTime={formatTime} label={showLastOnly ? undefined : (cond.label || `Cond #${(rule.additionalConditions!.indexOf(cond) + 2)}`)} />
+                  <ParsedValueRow key={cond.id} val={cv} rule={{ ...rule, interpretation: cond.interpretation, scale: cond.scale, unit: cond.unit }} formatTime={formatTime} label={rule.showLastOnly ? undefined : (cond.label || `Cond #${(rule.additionalConditions!.indexOf(cond) + 2)}`)} />
                 ))}
               </div>
             );
