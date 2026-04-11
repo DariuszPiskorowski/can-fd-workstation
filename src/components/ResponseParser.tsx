@@ -28,7 +28,7 @@ interface Props {
   };
 }
 
-export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onDeleteRule, onTogglePin, onExport, onImport, recorder }: Props) {
+const [showLastOnly, setShowLastOnly] = useState(false);
   const handleImport = () => {
     const input = document.createElement('input');
     input.type = 'file';
