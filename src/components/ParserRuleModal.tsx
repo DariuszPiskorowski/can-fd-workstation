@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HexByteInput } from '@/components/HexByteInput';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface Props {
@@ -106,7 +105,7 @@ export function ParserRuleModal({ open, onClose, onSave, rule }: Props) {
           <DialogTitle className="text-sm">{rule ? 'Edit Parser Rule' : 'New Parser Rule'}</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-3 -mr-3">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 scrollbar-thin">
           <div className="space-y-3 pb-2">
             {/* Base fields */}
             <div className="grid grid-cols-2 gap-3">
@@ -227,7 +226,7 @@ export function ParserRuleModal({ open, onClose, onSave, rule }: Props) {
               <Plus className="h-3 w-3" /> Add Condition Section
             </Button>
           </div>
-        </ScrollArea>
+        </div>
 
         <DialogFooter>
           <Button variant="ghost" size="sm" className="text-xs" onClick={onClose}>Cancel</Button>
