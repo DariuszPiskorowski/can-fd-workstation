@@ -62,6 +62,10 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
         <div className="p-2 space-y-1.5">
           {rules.map(rule => {
             const val = parsedValues.get(rule.id);
+            const condVals = (rule.additionalConditions || []).map(c => ({
+              cond: c,
+              val: parsedValues.get(`${rule.id}__${c.id}`),
+            }));
             return (
               <div key={rule.id} className="bg-muted/50 border border-border rounded p-2 space-y-1">
                 <div className="flex items-start justify-between">
@@ -89,27 +93,11 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
                   </div>
                 </div>
 
-                {val ? (
-                  <div className="flex items-center gap-3 bg-card rounded px-2 py-1">
-                    <span className="can-status-dot active" />
-                    <span className="text-sm font-mono font-bold">
-                      {rule.interpretation === 'ascii'
-                        ? `"${val.asciiResult || ''}"`
-                        : rule.interpretation === 'hex'
-                          ? `0x${val.decimalResult.toString(16).toUpperCase()}`
-                          : val.scaledResult.toFixed(rule.scale < 1 ? 2 : 0)}
-                    </span>
-                    {rule.unit && <span className="text-xs text-muted-foreground">{rule.unit}</span>}
-                    <span className="text-[9px] text-muted-foreground ml-auto">
-                      Raw: {val.rawBytes.join(' ')} · {formatTime(val.timestamp)}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground px-2 py-1">
-                    <span className="can-status-dot inactive" />
-                    Waiting for data...
-                  </div>
-                )}
+                <ParsedValueRow val={val} rule={rule} formatTime={formatTime} label="Primary" />
+
+                {condVals.map(({ cond, val: cv }) => (
+                  <ParsedValueRow key={cond.id} val={cv} rule={{ ...rule, interpretation: cond.interpretation, scale: cond.scale, unit: cond.unit }} formatTime={formatTime} label={cond.label || `Cond #${(rule.additionalConditions!.indexOf(cond) + 2)}`} />
+                ))}
               </div>
             );
           })}

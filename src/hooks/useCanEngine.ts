@@ -187,15 +187,31 @@ export function useCanEngine() {
       setParsedValues(prev => {
         const next = new Map(prev);
         for (const rule of parserRulesRef.current) {
-          if (rule.rxId === frame.canId && (!rule.rxInterface || rule.rxInterface === frame.canInterface)) {
-            // Check match condition if enabled
-            if (rule.matchConditionEnabled && rule.matchConditionBytes) {
-              const match = rule.matchConditionBytes.every((b, i) => b === 'XX' || (frame.dataBytes[i]?.toUpperCase() === b.toUpperCase()));
-              if (!match) continue;
-            }
+          if (rule.rxId !== frame.canId || (rule.rxInterface && rule.rxInterface !== frame.canInterface)) continue;
+
+          // Primary condition
+          let primaryMatch = true;
+          if (rule.matchConditionEnabled && rule.matchConditionBytes) {
+            primaryMatch = rule.matchConditionBytes.every((b, i) => b === 'XX' || (frame.dataBytes[i]?.toUpperCase() === b.toUpperCase()));
+          }
+          if (primaryMatch) {
             const result = applyParserRule(rule, frame.dataBytes);
             if (result) {
               next.set(rule.id, { ruleId: rule.id, displayName: rule.displayName, rawBytes: result.rawBytes, decimalResult: result.decimal, scaledResult: result.scaled, asciiResult: result.ascii, unit: rule.unit, timestamp: frame.timestamp, active: true });
+            }
+          }
+
+          // Additional conditions
+          if (rule.additionalConditions) {
+            for (const cond of rule.additionalConditions) {
+              const condMatch = cond.matchConditionBytes.every((b, i) => b === 'XX' || (frame.dataBytes[i]?.toUpperCase() === b.toUpperCase()));
+              if (!condMatch) continue;
+              const condAsRule = { ...rule, startByte: cond.startByte, byteLength: cond.byteLength, endianness: cond.endianness, interpretation: cond.interpretation, scale: cond.scale, offset: cond.offset };
+              const result = applyParserRule(condAsRule, frame.dataBytes);
+              if (result) {
+                const condKey = `${rule.id}__${cond.id}`;
+                next.set(condKey, { ruleId: condKey, displayName: cond.label || `${rule.displayName} #${rule.additionalConditions!.indexOf(cond) + 2}`, rawBytes: result.rawBytes, decimalResult: result.decimal, scaledResult: result.scaled, asciiResult: result.ascii, unit: cond.unit, timestamp: frame.timestamp, active: true });
+              }
             }
           }
         }
