@@ -136,6 +136,7 @@ export interface ParserRule {
   unit: string;
   displayName: string;
   pinned: boolean;
+  showLastOnly?: boolean;
   additionalConditions?: ParserRuleCondition[];
 }
 
