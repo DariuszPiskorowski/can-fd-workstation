@@ -107,6 +107,19 @@ export type InterpretationType =
   | 'scaled'
   | 'ascii';
 
+export interface ParserRuleCondition {
+  id: string;
+  label: string;
+  matchConditionBytes: string[];
+  startByte: number;
+  byteLength: number;
+  endianness: Endianness;
+  interpretation: InterpretationType;
+  scale: number;
+  offset: number;
+  unit: string;
+}
+
 export interface ParserRule {
   id: string;
   name: string;
@@ -123,6 +136,7 @@ export interface ParserRule {
   unit: string;
   displayName: string;
   pinned: boolean;
+  additionalConditions?: ParserRuleCondition[];
 }
 
 export interface ParsedValue {
