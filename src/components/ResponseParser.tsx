@@ -74,6 +74,29 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
               cond: c,
               val: parsedValues.get(`${rule.id}__${c.id}`),
             }));
+
+            // When "Last only" is on, find the most recent value across primary + conditions
+            let filteredPrimary = val;
+            let filteredCondVals = condVals;
+
+            if (showLastOnly) {
+              const allEntries: { type: 'primary'; val?: ParsedValue } | { type: 'cond'; cond: typeof condVals[0]; val?: ParsedValue }[] = [];
+              if (val) allEntries.push({ type: 'primary', val });
+              for (const cv of condVals) {
+                if (cv.val) allEntries.push({ type: 'cond', cond: cv, val: cv.val });
+              }
+              
+              if (allEntries.length > 0) {
+                const latest = allEntries.reduce((a, b) => (b.val!.timestamp > a.val!.timestamp ? b : a));
+                if (latest.type === 'primary') {
+                  filteredCondVals = [];
+                } else {
+                  filteredPrimary = undefined;
+                  filteredCondVals = [latest.cond];
+                }
+              }
+            }
+
             return (
               <div key={rule.id} className="bg-muted/50 border border-border rounded p-2 space-y-1">
                 <div className="flex items-start justify-between">
@@ -101,10 +124,11 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
                   </div>
                 </div>
 
-                <ParsedValueRow val={val} rule={rule} formatTime={formatTime} label="Primary" />
+                {filteredPrimary && <ParsedValueRow val={filteredPrimary} rule={rule} formatTime={formatTime} label={showLastOnly ? undefined : "Primary"} />}
+                {!showLastOnly && !filteredPrimary && <ParsedValueRow val={undefined} rule={rule} formatTime={formatTime} label="Primary" />}
 
-                {condVals.map(({ cond, val: cv }) => (
-                  <ParsedValueRow key={cond.id} val={cv} rule={{ ...rule, interpretation: cond.interpretation, scale: cond.scale, unit: cond.unit }} formatTime={formatTime} label={cond.label || `Cond #${(rule.additionalConditions!.indexOf(cond) + 2)}`} />
+                {filteredCondVals.map(({ cond, val: cv }) => (
+                  <ParsedValueRow key={cond.id} val={cv} rule={{ ...rule, interpretation: cond.interpretation, scale: cond.scale, unit: cond.unit }} formatTime={formatTime} label={showLastOnly ? undefined : (cond.label || `Cond #${(rule.additionalConditions!.indexOf(cond) + 2)}`)} />
                 ))}
               </div>
             );
