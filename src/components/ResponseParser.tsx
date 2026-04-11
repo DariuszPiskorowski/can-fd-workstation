@@ -80,19 +80,20 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
             let filteredCondVals = condVals;
 
             if (showLastOnly) {
-              const allEntries: { type: 'primary'; val?: ParsedValue } | { type: 'cond'; cond: typeof condVals[0]; val?: ParsedValue }[] = [];
-              if (val) allEntries.push({ type: 'primary', val });
+              // Collect all values with timestamps
+              const candidates: { isPrimary: boolean; ts: number; condEntry?: typeof condVals[0] }[] = [];
+              if (val) candidates.push({ isPrimary: true, ts: val.timestamp });
               for (const cv of condVals) {
-                if (cv.val) allEntries.push({ type: 'cond', cond: cv, val: cv.val });
+                if (cv.val) candidates.push({ isPrimary: false, ts: cv.val.timestamp, condEntry: cv });
               }
               
-              if (allEntries.length > 0) {
-                const latest = allEntries.reduce((a, b) => (b.val!.timestamp > a.val!.timestamp ? b : a));
-                if (latest.type === 'primary') {
+              if (candidates.length > 0) {
+                const latest = candidates.reduce((a, b) => (b.ts > a.ts ? b : a));
+                if (latest.isPrimary) {
                   filteredCondVals = [];
                 } else {
                   filteredPrimary = undefined;
-                  filteredCondVals = [latest.cond];
+                  filteredCondVals = [latest.condEntry!];
                 }
               }
             }
