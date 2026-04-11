@@ -88,6 +88,8 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
                   filteredCondVals = [latest.condEntry!];
                 }
               }
+              // Also filter out any condVals without data
+              filteredCondVals = filteredCondVals.filter(cv => cv.val);
             }
 
             return (
