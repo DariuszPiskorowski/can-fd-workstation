@@ -22,7 +22,7 @@ export function LiveTerminal({ frames, isPaused, onPauseToggle, onClear, txCount
   const [idFilter, setIdFilter] = useState('');
   const [dataSearch, setDataSearch] = useState('');
   const [selectedFrame, setSelectedFrame] = useState<CanFrame | null>(null);
-  const [highlightNonZero, setHighlightNonZero] = useState(false);
+  const [highlightNonZero, setHighlightNonZero] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
