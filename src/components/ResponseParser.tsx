@@ -55,7 +55,11 @@ export function ResponseParser({ rules, parsedValues, onAddRule, onEditRule, onD
     <div className="can-panel h-full flex flex-col">
       <div className="can-panel-header">
         <span>Response Parser</span>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1 text-[10px] text-muted-foreground cursor-pointer select-none">
+            <Checkbox checked={showLastOnly} onCheckedChange={(v) => setShowLastOnly(!!v)} className="h-3.5 w-3.5" />
+            Last only
+          </label>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onExport} title="Export"><Upload className="h-3.5 w-3.5" /></Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleImport} title="Import"><Download className="h-3.5 w-3.5" /></Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onAddRule} title="Add Rule"><Plus className="h-3.5 w-3.5" /></Button>
