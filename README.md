@@ -9,7 +9,8 @@ Developed for an internal engineering workflow and used in workplace diagnostics
 The workspace combines a command library on the left, a live frame terminal in the centre, and response parsing and recording controls on the right. Pinned values are displayed above the main panels.
 
 <!-- Insert one redacted screenshot of the workstation UI here using GitHub's image upload. -->
-*UI screenshot to be added.*
+<img width="1255" height="871" alt="image" src="https://github.com/user-attachments/assets/98bd6063-4f92-4859-90c8-18b1b7cd4eca" />
+
 
 ## Main capabilities
 
@@ -49,6 +50,10 @@ The application supports numeric and ASCII decoding, optional byte-pattern condi
 Parser definitions can be exported and imported as JSON.
 
 ### Live terminal and recording
+
+
+<img width="1877" height="920" alt="image" src="https://github.com/user-attachments/assets/252ac8b4-2c16-4c64-a619-6d63cbb7d2ca" />
+
 
 The live terminal provides TX/RX filtering, CAN identifier filtering, payload-text searching, automatic scrolling and non-zero-byte highlighting.
 
